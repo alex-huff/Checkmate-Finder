@@ -2,32 +2,47 @@ package chess;
 
 import java.util.List;
 
-public class PieceQueen extends Piece {
+public
+class PieceQueen extends Piece
+{
 
-    public PieceQueen(Board board, Team team) {
+    public
+    PieceQueen(Board board, Team team)
+    {
         super(board, team);
     }
 
-    public PieceQueen(Piece piece) { //for promotions
+    public
+    PieceQueen(Piece piece)
+    { //for promotions
         super(piece);
     }
 
     @Override
-    public char getLabel() {
-        if (this.getTeam().equals(Team.WHITE)) {
+    public
+    char getLabel()
+    {
+        if (this.getTeam().equals(Team.WHITE))
+        {
             return 'Q';
-        } else {
+        }
+        else
+        {
             return 'q';
         }
     }
 
     @Override
-    public List<Move> getSpecialMoves() {
+    public
+    List<Move> getSpecialMoves()
+    {
         return null;
     }
 
     @Override
-    public List<BoardPos> getSpan() {
+    public
+    List<BoardPos> getSpan()
+    {
         List<BoardPos> span = this.getHorizontalSpan();
 
         span.addAll(this.getVerticleSpan());

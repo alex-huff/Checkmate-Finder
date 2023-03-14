@@ -1,47 +1,67 @@
 package chess;
 
-public class BoardPos {
+public
+class BoardPos
+{
 
-    private int row;
-    private int col;
+    private        int    row;
+    private        int    col;
     private static String letters = "abcdefgh";
 
-    public BoardPos(BoardPos pos) {
+    public
+    BoardPos(BoardPos pos)
+    {
         this.row = pos.getRow();
         this.col = pos.getCol();
     }
 
-    public BoardPos(int row, int col) {
+    public
+    BoardPos(int row, int col)
+    {
         this.row = row;
         this.col = col;
     }
 
-    public int getRow() {
+    public
+    int getRow()
+    {
         return this.row;
     }
 
-    public int getCol() {
+    public
+    int getCol()
+    {
         return this.col;
     }
 
-    public void setRow(int row) {
+    public
+    void setRow(int row)
+    {
         this.row = row;
     }
 
-    public void setCol(int col) {
+    public
+    void setCol(int col)
+    {
         this.col = col;
     }
 
     @Override
-    public String toString() {
+    public
+    String toString()
+    {
         return letters.charAt(this.col) + Integer.toString(this.row + 1);
     }
 
-    public static BoardPos getPosFromStr(String str) {
+    public static
+    BoardPos getPosFromStr(String str)
+    {
         return new BoardPos(Integer.parseInt("" + str.charAt(1)) - 1, letters.indexOf(str.charAt(0)));
     }
 
-    public boolean equivalent(BoardPos other) {
+    public
+    boolean equivalent(BoardPos other)
+    {
         return ((this.row == other.row) && (this.col == col));
     }
 
