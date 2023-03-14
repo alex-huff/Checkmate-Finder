@@ -43,7 +43,7 @@ Now let's perform that move.
 
 ![board(1)](https://user-images.githubusercontent.com/38389408/225085872-e71a97d7-980c-4409-b977-08678b9c5fc9.png)
 
-Black's turn, they capture our our queen!
+Black's turn, they capture our queen!
 
 ![board(2)](https://user-images.githubusercontent.com/38389408/225085957-d1b24bde-f5b4-4ffe-95be-835667d0aeab.png)
 
