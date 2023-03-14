@@ -24,5 +24,40 @@ In this tree, blue dots represent game states. The leftmost dot is the initial g
 
 This example tree does have this recursive property, and so it represents a forced checkmate. In fact, for this example, any of white's initial moves can lead to a forced checkmate.
 
+## In Action
+Let's show a trivial example, white's turn:
+
+![board](https://user-images.githubusercontent.com/38389408/225085853-4a9d9eb6-b45c-417f-9704-7d090a764d91.png)
+
+Using CheckmateFinder with the input parameters
+
+FEN: rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -
+
+CheckDepth: 0
+
+Depth: 4
+
+Yields the move `(e4-e8)`
+
+Now let's perform that move
+
+![board(1)](https://user-images.githubusercontent.com/38389408/225085872-e71a97d7-980c-4409-b977-08678b9c5fc9.png)
+
+Black's turn, they capture our our queen
+
+![board(2)](https://user-images.githubusercontent.com/38389408/225085957-d1b24bde-f5b4-4ffe-95be-835667d0aeab.png)
+
+Using CheckmateFinder again with the new input parameters
+
+FEN: rn2r1k1/1pq2p1p/p2p1bpB/3P4/P7/2PB4/5PPP/2R1R1K1 w - -
+
+CheckDepth: 0
+
+Depth: 2
+
+Yields the move `(e1-e8)`, checkmate!
+
+![board(3)](https://user-images.githubusercontent.com/38389408/225085994-9b70fe88-3952-4567-bdb1-1c84e1050e0a.png)
+
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
