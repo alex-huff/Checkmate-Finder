@@ -13,13 +13,16 @@ CheckmateFinder under the hood tries to find a move, where all possible opponent
 
 It is easier to understand how CheckmateFinder works with a visual.
 
-![graph-circled](https://user-images.githubusercontent.com/38389408/224877188-a0a8117e-5000-47ee-9737-00dfb445b727.png)
+![graph](https://user-images.githubusercontent.com/38389408/225073488-0eed7c2a-ff1c-4b13-97d2-2c3c4f978450.png)
 
-In this graph, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that white can make. If we are still below the check depth, we consider all possible moves that white can play. If we are above the check depth, only check moves are considered. Each black line is a valid move for black. To have a forced checkmate, an entire branch of this tree must meet two requirements:
-- It's entire breadth is contained within the search depth of the algorithm.
-- All leaf nodes are at an odd depth, meaning black has no valid moves.
+In this tree, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that white can make. If we are still below the check depth, we consider all possible moves that white can play. If we are above the check depth, only check moves are considered. Each black line is a valid move for black. To have a forced checkmate, the entire tree must have this recursive property:
 
-Of the 4 moves that white can play initially, the 3rd from the top has a branch that meets these requirements, meaning that move leads to a forced mate. In a real situation, this graph would likely be massive, even for a relatively small depth. This is the nature of chess.
+(Initial state is at depth 0)
+- A leaf who is at an odd depth (blacks's turn), is a forced checkmate. (black has no possible moves)
+- A subtree whose root is at an odd depth (black's turn), and whose branches are exclusively forced checkmates, is also a forced checkmate. (any of black's moves still result in a forced checkmate)
+- A subtree whose root is at an even depth (white's turn), and whose branches contain at least one forced checkmate, is also a forced checkmate. (there exists a move for white that forces checkmate on black given optimal play)
+
+This example tree does have this recursive property, and so it represents a forced checkmate. In fact, for this example, any of white's initial moves can lead to a forced checkmate.
 
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
