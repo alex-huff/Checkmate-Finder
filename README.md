@@ -13,5 +13,16 @@ A proper chess engine will use advanced heuristics along with hard coded solutio
 ## How it works
 CheckmateFinder under the hood tries to find a check move, where all possible opponent counter-moves result in a new board state where a new move can be performed by the player that both results in a check, and a new board state where this process is recursed upon to prove that in the end, there are no moves the opponent can make to escape a subsequent check. This process recurses to a max depth, where if there still exists a move for the opponent to make that gets them out of check, the program terminates without a returned move. CheckmateFinder only returns a move when it has proven that no sequence of opponent counter moves can ultimately get them out of an inevitable checkmate.
 
-## Verifying compliance with chess rules (en-passant, promotion, castling)
-To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
+It is easier to understand how CheckmateFinder works with a visual.
+
+![graph-circled](https://user-images.githubusercontent.com/38389408/224877188-a0a8117e-5000-47ee-9737-00dfb445b727.png)
+
+
+In this graph, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that can put black into check. Each black line is a move that gets black out of check. To have a forced checkmate, an entire branch of this tree must meet two requirements:
+- It's entire breadth is contained within the search depth of the algorithm.
+- All leaf nodes are at an odd depth, meaning black is in check.
+
+Of the 4 moves that white can play initially, the 3rd from the top has a branch that meets these requirements, meaning that move leads to a forced mate. In a real situation, this graph would likely be massive, even for a relatively small depth. This is the nature of chess.
+
+## Verifying compliance with chess rules (en passant, promotion, castling)
+To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
