@@ -29,7 +29,7 @@ Let's show a trivial example, white's turn:
 
 ![board](https://user-images.githubusercontent.com/38389408/225085853-4a9d9eb6-b45c-417f-9704-7d090a764d91.png)
 
-Using CheckmateFinder with the input parameters
+Using CheckmateFinder with the input parameters:
 
 FEN: rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -
 
@@ -37,17 +37,17 @@ CheckDepth: 0
 
 Depth: 4
 
-Yields the move `(e4-e8)`
+Yields the move `(e4-e8)`.
 
-Now let's perform that move
+Now let's perform that move.
 
 ![board(1)](https://user-images.githubusercontent.com/38389408/225085872-e71a97d7-980c-4409-b977-08678b9c5fc9.png)
 
-Black's turn, they capture our our queen
+Black's turn, they capture our our queen!
 
 ![board(2)](https://user-images.githubusercontent.com/38389408/225085957-d1b24bde-f5b4-4ffe-95be-835667d0aeab.png)
 
-Using CheckmateFinder again with the new input parameters
+Using CheckmateFinder again with the new input parameters:
 
 FEN: rn2r1k1/1pq2p1p/p2p1bpB/3P4/P7/2PB4/5PPP/2R1R1K1 w - -
 
