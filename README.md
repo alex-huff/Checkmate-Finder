@@ -1,6 +1,4 @@
 # CheckmateFinder
-Finds forced checkmates from an initial board state
-
 ## About
 CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. For a forced checkmate, it does not matter what moves the opponent plays, there is always a way to checkmate them. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles. Many chess puzzles expect the player to find the first move in a checkmate sequence. CheckmateFinder can often find this first move.
 
