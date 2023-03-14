@@ -78,12 +78,12 @@ class ChessGame
         //        3894594
         //        164075551
 
-        Board board = Board.getBoardFromFEN("r3r1k1/pb3pp1/1p4n1/2pp3Q/3P3q/P1P1P3/1B3PP1/1BR2RK1 w - -", false);
+        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
 
 
         System.out.println(board.toString(false));
 
-        for (Move move : board.getForceMateMoves(11, 11))
+        for (Move move : board.getForceMateMoves(4, 0))
         {
             System.out.println(move);
         }

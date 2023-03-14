@@ -267,7 +267,7 @@ class Board
         {
             this.executeMove(move);
 
-            boolean canForce = canForceMate(1, maxDepth, checkDepth);
+            boolean canForce = this.canForceMate(1, maxDepth, checkDepth);
 
             this.reverseMove(move);
 
