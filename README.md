@@ -18,9 +18,9 @@ It is easier to understand how CheckmateFinder works with a visual:
 In this tree, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that white can make. If we are still below the check depth, we consider all possible moves that white can play. If we are above the check depth, only check moves are considered. Black lines are all valid moves that black can play. To have a forced checkmate, the entire tree must have this recursive property:
 
 (Initial state is at depth 0)
-- A leaf who is at an odd depth (blacks's turn), is a forced checkmate if black is in check. (black has no possible moves and is in check: checkmate.)
-- A subtree whose root is at an odd depth (black's turn), and whose branches are exclusively forced checkmates, is also a forced checkmate. (any of black's moves still result in a forced checkmate)
-- A subtree whose root is at an even depth (white's turn), and whose branches contain at least one forced checkmate, is also a forced checkmate. (there exists a move for white that forces checkmate on black given optimal play)
+- A leaf who is at an odd depth (opponent's turn), is a forced checkmate if the opponent is in check. (opponent has no possible moves and is in check: checkmate.)
+- A subtree whose root is at an odd depth (opponent's turn), and whose branches are exclusively forced checkmates, is also a forced checkmate. (any of the opponent's moves still result in a forced checkmate)
+- A subtree whose root is at an even depth (your's turn), and whose branches contain at least one forced checkmate, is also a forced checkmate. (there exists a move for you that forces checkmate on your opponent given optimal play)
 
 This example tree does have this recursive property, and so it represents a forced checkmate. In fact, for this example, any of white's initial moves can lead to a forced checkmate.
 
