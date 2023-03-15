@@ -85,5 +85,9 @@ Here is the tree proving that `(g3-f4)` leads to a forced checkmate:
 
 Note: this tree is ommitting the other 34 possible starting moves, meaning it would be about 35 times as big if the entire tree was shown!
 
+Here is the same tree but only containing the moves neccesary to prove mate in 4:
+
+![graph](https://user-images.githubusercontent.com/38389408/225195448-9adfe7ec-22af-412c-9485-bfb5f3063831.png)
+
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
