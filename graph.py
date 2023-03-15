@@ -31,6 +31,7 @@ def recurseMoveTree(moveTreeNode, depth):
     span = [False, []]
     for i in range(len(nextNodes)):
         # if depth is 0 and not moveTreeNode['isForcedCheckmateTree'][i]: continue
+        # if not moveTreeNode['isForcedCheckmateTree'][i]: continue
         incrementNodeCountAtDepth(depth + 1, 1)
         if not nextNodes[i]['escaped']: span[1].append((getNodeCountAtDepth(depth + 1), moveTreeNode['isForcedCheckmateTree'][i], moveTreeNode['moves'][i]))
         else: span[0] = True
@@ -110,7 +111,7 @@ for depth, column in enumerate(graph):
         nodeX, nodeY = getCoordsAtDepthBredth(depth, bredth)
         numNodesAtNextDepth = len(graph[depth + 1])
         nextRowHeight = graphHeight / (numNodesAtNextDepth - 1) if numNodesAtNextDepth > 1 else 0
-        targetTextHeight = nextRowHeight / 2 * .7 if nextRowHeight is not 0 else maxTextHeight
+        targetTextHeight = nextRowHeight / 2 * .7 if nextRowHeight != 0 else maxTextHeight
         targetTextHeight = min(targetTextHeight, maxTextHeight)
         for nextBredth in node[1]:
             nextNodeCoords = getCoordsAtDepthBredth(depth + 1, nextBredth[0] - 1)

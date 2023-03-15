@@ -273,6 +273,7 @@ class Board
 
         for (Move move : moves)
         {
+            System.out.println("Analyzing move: " + move);
             this.executeMove(move);
 
             Pair<Boolean, MoveTreeNode> pair     = this.canForceMate(1, maxDepth, checkDepth);
@@ -328,7 +329,7 @@ class Board
                 {
                     this.executeMove(move);
 
-                    Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth);
+                    Pair<Boolean, MoveTreeNode> pair = this.canForceMate(depth + 1, maxDepth, checkDepth);
 
                     this.reverseMove(move);
 
@@ -342,6 +343,10 @@ class Board
                     isMoveTreeForcedCheckmate.add(pair.getA());
                 }
             }
+            else
+            {
+                canForceAllMoves = this.isInCheck(this.turn);
+            }
 
             MoveTreeNode moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
 
@@ -349,20 +354,20 @@ class Board
         }
         else
         { //only want moves that put in check
-            List<Move> checkMoves;
+            List<Move> moves;
 
             if (depth < checkDepth)
             {
-                checkMoves = this.getAllMoves();
+                moves = this.getAllMoves();
             }
             else
             {
-                checkMoves = this.getAllCheckMoves();
+                moves = this.getAllCheckMoves();
             }
 
             boolean canForce = false;
 
-            for (Move move : checkMoves)
+            for (Move move : moves)
             {
                 this.executeMove(move);
 
