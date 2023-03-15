@@ -59,5 +59,31 @@ Yields the move `(e1-e8)`, checkmate!
 
 ![board(3)](https://user-images.githubusercontent.com/38389408/225085994-9b70fe88-3952-4567-bdb1-1c84e1050e0a.png)
 
+Here is a tree just like the one showed previously but representing this game:
+
+![graph](https://user-images.githubusercontent.com/38389408/225175857-db5d7842-700c-4b2b-b627-ba0a593420cb.png)
+
+In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth.
+
+Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
+
+![board](https://user-images.githubusercontent.com/38389408/225177682-ecc6be4b-edb9-47f6-820f-bdd72c608291.png)
+
+Using CheckmateFinder with the input parameters:
+
+FEN: 8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -
+
+CheckDepth: 3
+
+Depth: 6
+
+Yields the move `(g3-f4)`.
+
+Here is the tree proving that `(g3-f4)` leads to a forced checkmate:
+
+![graph](https://user-images.githubusercontent.com/38389408/225180402-52af087f-e329-46f4-b128-adbb5a2717c7.png)
+
+Note: this tree is ommitting the other 34 possible starting moves, meaning it would be about 35 times as big if the entire tree was shown!
+
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
