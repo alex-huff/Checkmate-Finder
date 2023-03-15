@@ -15,7 +15,7 @@ It is easier to understand how CheckmateFinder works with a visual.
 
 ![graph](https://user-images.githubusercontent.com/38389408/225073488-0eed7c2a-ff1c-4b13-97d2-2c3c4f978450.png)
 
-In this tree, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that white can make. If we are still below the check depth, we consider all possible moves that white can play. If we are above the check depth, only check moves are considered. Each black line is a valid move for black. To have a forced checkmate, the entire tree must have this recursive property:
+In this tree, blue dots represent game states. The leftmost dot is the initial game state. Assuming it's white's turn, each white line represents a move that white can make. If we are still below the check depth, we consider all possible moves that white can play. If we are above the check depth, only check moves are considered. Black lines are all valid moves that black can play. To have a forced checkmate, the entire tree must have this recursive property:
 
 (Initial state is at depth 0)
 - A leaf who is at an odd depth (blacks's turn), is a forced checkmate. (black has no possible moves)
@@ -63,7 +63,7 @@ Here is a tree just like the one showed previously but representing this game:
 
 ![graph](https://user-images.githubusercontent.com/38389408/225175857-db5d7842-700c-4b2b-b627-ba0a593420cb.png)
 
-In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth.
+In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
 
 Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
 
