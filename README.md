@@ -61,9 +61,10 @@ Yields the move `(e1-e8)`, checkmate!
 
 Here is a tree just like the one shown previously, but representing this game:
 
-![graph](https://user-images.githubusercontent.com/38389408/225175857-db5d7842-700c-4b2b-b627-ba0a593420cb.png)
+![graph](https://user-images.githubusercontent.com/38389408/225401663-4c37d9c4-d437-4ea0-a471-39028b3ff666.png)
 
-In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
+
+In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. But, `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
 
 Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
 
@@ -81,7 +82,7 @@ Yields the move `(g3-f4)`.
 
 Here is the tree proving that `(g3-f4)` leads to a mate in 4:
 
-![graph](https://user-images.githubusercontent.com/38389408/225205361-72381a31-cec9-48bb-8a2e-ac40fdf2abb5.png)
+![graph](https://user-images.githubusercontent.com/38389408/225403171-e1823470-a4db-4794-aa0c-c97b521222ce.png)
 
 Note: this tree is omitting all paths that don't directly lead to a forced mate. It would be absolutely massive if all paths were included.
 
