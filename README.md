@@ -73,21 +73,17 @@ Using CheckmateFinder with the input parameters:
 
 FEN: 8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -
 
-CheckDepth: 3
+CheckDepth: 5
 
-Depth: 6
+Depth: 10
 
 Yields the move `(g3-f4)`.
 
-Here is the tree proving that `(g3-f4)` leads to a forced checkmate:
+Here is the tree proving that `(g3-f4)` leads to a mate in 4:
 
-![graph](https://user-images.githubusercontent.com/38389408/225180402-52af087f-e329-46f4-b128-adbb5a2717c7.png)
+![graph](https://user-images.githubusercontent.com/38389408/225205361-72381a31-cec9-48bb-8a2e-ac40fdf2abb5.png)
 
-Note: this tree is ommitting the other 34 possible starting moves, meaning it would be about 35 times as big if the entire tree was shown!
-
-Here is the same tree but only containing the moves neccesary to prove mate in 4:
-
-![graph](https://user-images.githubusercontent.com/38389408/225195448-9adfe7ec-22af-412c-9485-bfb5f3063831.png)
+Note: this tree is ommitting all paths that don't directly lead to a forced mate. It would be absolutely massive if all paths were included.
 
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed. 
