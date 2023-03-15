@@ -1,7 +1,12 @@
 package chess;
 
+import com.google.gson.Gson;
 import util.LinkedStack;
+import util.Pair;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -216,36 +221,36 @@ class Board
         return numMoves(0, maxDepth);
     }
 
-    public
-    Move getForceMateMove(int maxDepth, int checkDepth)
-    {
-        List<Move> moves;
-
-        if (checkDepth > 0)
-        {
-            moves = this.getAllMoves();
-        }
-        else
-        {
-            moves = this.getAllCheckMoves();
-        }
-
-        for (Move move : moves)
-        {
-            this.executeMove(move);
-
-            boolean canForce = this.canForceMate(1, maxDepth, checkDepth);
-
-            this.reverseMove(move);
-
-            if (canForce)
-            {
-                return move;
-            }
-        }
-
-        return null;
-    }
+//    public
+//    Move getForceMateMove(int maxDepth, int checkDepth)
+//    {
+//        List<Move> moves;
+//
+//        if (checkDepth > 0)
+//        {
+//            moves = this.getAllMoves();
+//        }
+//        else
+//        {
+//            moves = this.getAllCheckMoves();
+//        }
+//
+//        for (Move move : moves)
+//        {
+//            this.executeMove(move);
+//
+//            boolean canForce = this.canForceMate(1, maxDepth, checkDepth);
+//
+//            this.reverseMove(move);
+//
+//            if (canForce)
+//            {
+//                return move;
+//            }
+//        }
+//
+//        return null;
+//    }
 
     public
     List<Move> getForceMateMoves(int maxDepth, int checkDepth)
@@ -262,56 +267,85 @@ class Board
         }
 
         List<Move> forceMateMoves = new ArrayList<>();
+        List<MoveTreeNode> moveTreeNodes = new ArrayList<>();
+        List<String> moveStrings = new ArrayList<>();
+        List<Boolean> isMoveTreeForcedCheckmate = new ArrayList<>();
 
         for (Move move : moves)
         {
             this.executeMove(move);
 
-            boolean canForce = this.canForceMate(1, maxDepth, checkDepth);
+            Pair<Boolean, MoveTreeNode> pair     = this.canForceMate(1, maxDepth, checkDepth);
 
             this.reverseMove(move);
 
-            if (canForce)
+            if (pair.getA())
             {
                 forceMateMoves.add(move);
             }
+
+            moveStrings.add(move.toString());
+            isMoveTreeForcedCheckmate.add(pair.getA());
+            moveTreeNodes.add(pair.getB());
+        }
+
+        MoveTreeNode moveTree = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+        Gson gson = new Gson();
+        String jsonString = gson.toJson(moveTree);
+
+        try
+        {
+            Files.writeString(Path.of("moveTree.json"), jsonString);
+        }
+        catch (IOException e)
+        {
+            throw new RuntimeException(e);
         }
 
         return forceMateMoves;
     }
 
     public
-    boolean canForceMate(int depth, int maxDepth, int checkDepth)
+    Pair<Boolean, MoveTreeNode> canForceMate(int depth, int maxDepth, int checkDepth)
     { //can attacking team force the mate
         if (depth == maxDepth)
         { //path has escape
-            return false;
+            return new Pair<>(false, new MoveTreeNode(true, null, null, null));
         }
+
+        List<MoveTreeNode> moveTreeNodes = new ArrayList<>();
+        List<String> moveStrings = new ArrayList<>();
+        List<Boolean> isMoveTreeForcedCheckmate = new ArrayList<>();
 
         if (depth % 2 == 1)
         { //get out of check
             List<Move> allMoves = this.getAllMoves();
+            boolean canForceAllMoves = true;
 
             if (allMoves.size() != 0)
             {
                 for (Move move : allMoves)
                 {
-                    boolean canForce;
-
                     this.executeMove(move);
 
-                    canForce = canForceMate(depth + 1, maxDepth, checkDepth);
+                    Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth);
 
                     this.reverseMove(move);
 
-                    if (!canForce)
+                    if (!pair.getA())
                     {
-                        return false;
+                        canForceAllMoves = false;
                     }
+
+                    moveTreeNodes.add(pair.getB());
+                    moveStrings.add(move.toString());
+                    isMoveTreeForcedCheckmate.add(pair.getA());
                 }
             }
 
-            return true;
+            MoveTreeNode moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+
+            return new Pair<>(canForceAllMoves, moveTreeNode);
         }
         else
         { //only want moves that put in check
@@ -326,21 +360,27 @@ class Board
                 checkMoves = this.getAllCheckMoves();
             }
 
+            boolean canForce = false;
+
             for (Move move : checkMoves)
             {
                 this.executeMove(move);
 
-                boolean canForce = canForceMate(depth + 1, maxDepth, checkDepth);
+                Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth);
 
                 this.reverseMove(move);
 
-                if (canForce)
+                if (pair.getA())
                 {
-                    return true;
+                    canForce = true;
                 }
+
+                moveTreeNodes.add(pair.getB());
+                moveStrings.add(move.toString());
+                isMoveTreeForcedCheckmate.add(pair.getA());
             }
 
-            return false;
+            return new Pair<>(canForce, new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes));
         }
     }
 
