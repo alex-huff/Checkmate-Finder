@@ -11,13 +11,16 @@ print(moveTree['moves'])
 nodesPerDepth = [1]
 graph = []
 
+
 def incrementNodeCountAtDepth(depth, count):
     if depth is len(nodesPerDepth):
         nodesPerDepth.append(0)
     nodesPerDepth[depth] = nodesPerDepth[depth] + count
 
+
 def getNodeCountAtDepth(depth):
     return nodesPerDepth[depth]
+
 
 def addNodeToGraph(depth, span):
     if depth >= len(graph):
@@ -25,18 +28,24 @@ def addNodeToGraph(depth, span):
             graph.append([])
     graph[depth].append(span)
 
+
 def recurseMoveTree(moveTreeNode, depth):
-    if 'nextNodes' not in moveTreeNode: return
+    if 'nextNodes' not in moveTreeNode:
+        return
     nextNodes = moveTreeNode['nextNodes']
     span = [False, []]
     for i in range(len(nextNodes)):
         # if depth is 0 and not moveTreeNode['isForcedCheckmateTree'][i]: continue
         # if not moveTreeNode['isForcedCheckmateTree'][i]: continue
         incrementNodeCountAtDepth(depth + 1, 1)
-        if not nextNodes[i]['escaped']: span[1].append((getNodeCountAtDepth(depth + 1), moveTreeNode['isForcedCheckmateTree'][i], moveTreeNode['moves'][i]))
-        else: span[0] = True
+        if not nextNodes[i]['escaped']:
+            span[1].append((getNodeCountAtDepth(
+                depth + 1), moveTreeNode['isForcedCheckmateTree'][i], moveTreeNode['moves'][i]))
+        else:
+            span[0] = True
         recurseMoveTree(nextNodes[i], depth + 1)
     addNodeToGraph(depth, span)
+
 
 recurseMoveTree(moveTree, 0)
 print(nodesPerDepth)
@@ -66,72 +75,92 @@ halfLineWidth = lineWidth / 2
 fontName = sys.argv[1]
 font = ImageFont.truetype(fontName, 1)
 
+
 def adjustFontForHeight(text, height):
     global font
     fontSize = 1
     font = ImageFont.truetype(fontName, fontSize)
     while True:
-        left, top, right, bottom = font.getbbox(text)
+        _, top, _, bottom = font.getbbox(text)
         textHeight = bottom - top
         if textHeight > height:
             break
         fontSize += 1
         font = ImageFont.truetype(fontName, fontSize)
 
-    fontSize -= 1 # rather smaller than bigger
+    fontSize -= 1  # rather smaller than bigger
     font = ImageFont.truetype(fontName, fontSize)
+
 
 def getCoordsAtDepthBredth(depth, bredth):
     numNodesAtDepth = len(graph[depth])
-    rowHeight = graphHeight / (numNodesAtDepth - 1) if numNodesAtDepth > 1 else 0
+    rowHeight = graphHeight / \
+        (numNodesAtDepth - 1) if numNodesAtDepth > 1 else 0
     nodeX = margin + columnWidth * depth
     nodeY = margin + rowHeight * bredth if rowHeight > 0 else margin + graphHeight / 2
-    return(nodeX, nodeY)
+    return (nodeX, nodeY)
+
 
 def lerp(start, end, percent):
     return start + (end - start) * percent
 
+
 for depth, column in enumerate(graph):
     lineColor = (245, 224, 220) if depth % 2 == 0 else (30, 30, 46)
     numNodesAtDepth = len(graph[depth])
-    rowHeight = graphHeight / (numNodesAtDepth - 1) if numNodesAtDepth > 1 else 0
+    rowHeight = graphHeight / \
+        (numNodesAtDepth - 1) if numNodesAtDepth > 1 else 0
     for bredth, node in enumerate(column):
         nodeX, nodeY = getCoordsAtDepthBredth(depth, bredth)
         if node[0]:
-            escapedYs = [nodeY - rowHeight / 3.5, nodeY, nodeY + rowHeight / 3.5]
+            escapedYs = [nodeY - rowHeight / 3.5,
+                         nodeY, nodeY + rowHeight / 3.5]
             for y in escapedYs:
-                graphDraw.line(((nodeX, nodeY), (totalWidth, y)), escapedColor, lineWidth)
+                graphDraw.line(((nodeX, nodeY), (totalWidth, y)),
+                               escapedColor, lineWidth)
         else:
             for nextBredth in node[1]:
-                nextNodeCoords = getCoordsAtDepthBredth(depth + 1, nextBredth[0] - 1)
+                nextNodeCoords = getCoordsAtDepthBredth(
+                    depth + 1, nextBredth[0] - 1)
                 isForcematePath = nextBredth[1]
                 if isForcematePath:
-                    graphDraw.line(((nodeX, nodeY), nextNodeCoords), forceMateColor, lineWidth * 3)
-                graphDraw.line(((nodeX, nodeY), nextNodeCoords), lineColor, lineWidth)
-                isConnectingToLeaf = len(graph[depth + 1][nextBredth[0] - 1][1]) == 0
+                    graphDraw.line(((nodeX, nodeY), nextNodeCoords),
+                                   forceMateColor, lineWidth * 3)
+                graphDraw.line(((nodeX, nodeY), nextNodeCoords),
+                               lineColor, lineWidth)
+                isConnectingToLeaf = len(
+                    graph[depth + 1][nextBredth[0] - 1][1]) == 0
                 if isForcematePath and isConnectingToLeaf and depth % 2 == 0:
-                    # draw checkmate
+                    # drawl checkmate
                     checkX, checkY = nextNodeCoords
                     checkLines =\
-                    [
-                        ((checkX - nodeRadius - lineWidth, checkY - 3 * nodeRadius - lineWidth), (checkX - nodeRadius - lineWidth, checkY + 3 * nodeRadius + lineWidth)),
-                        ((checkX + nodeRadius + lineWidth, checkY - 3 * nodeRadius - lineWidth), (checkX + nodeRadius + lineWidth, checkY + 3 * nodeRadius + lineWidth)),
-                        ((checkX - 3 * nodeRadius - lineWidth, checkY - nodeRadius - lineWidth), (checkX + 3 * nodeRadius + lineWidth, checkY - nodeRadius - lineWidth)),
-                        ((checkX - 3 * nodeRadius - lineWidth, checkY + nodeRadius + lineWidth), (checkX + 3 * nodeRadius + lineWidth, checkY + nodeRadius + lineWidth)),
-                    ]
+                        [
+                            ((checkX - nodeRadius - lineWidth, checkY - 3 * nodeRadius - lineWidth),
+                             (checkX - nodeRadius - lineWidth, checkY + 3 * nodeRadius + lineWidth)),
+                            ((checkX + nodeRadius + lineWidth, checkY - 3 * nodeRadius - lineWidth),
+                             (checkX + nodeRadius + lineWidth, checkY + 3 * nodeRadius + lineWidth)),
+                            ((checkX - 3 * nodeRadius - lineWidth, checkY - nodeRadius - lineWidth),
+                             (checkX + 3 * nodeRadius + lineWidth, checkY - nodeRadius - lineWidth)),
+                            ((checkX - 3 * nodeRadius - lineWidth, checkY + nodeRadius + lineWidth),
+                             (checkX + 3 * nodeRadius + lineWidth, checkY + nodeRadius + lineWidth)),
+                        ]
                     for line in checkLines:
                         graphDraw.line(line, checkColor, lineWidth)
-        graphDraw.arc(((nodeX - nodeRadius, nodeY - nodeRadius), (nodeX + nodeRadius, nodeY + nodeRadius)), 0, 360, nodeColor, nodeRadius + 1)
+        graphDraw.arc(((nodeX - nodeRadius, nodeY - nodeRadius), (nodeX +
+                      nodeRadius, nodeY + nodeRadius)), 0, 360, nodeColor, nodeRadius + 1)
     # text pass
-    if depth is len(graph) - 1: continue
+    if depth is len(graph) - 1:
+        continue
     for bredth, node in enumerate(column):
         nodeX, nodeY = getCoordsAtDepthBredth(depth, bredth)
         numNodesAtNextDepth = len(graph[depth + 1])
-        nextRowHeight = graphHeight / (numNodesAtNextDepth - 1) if numNodesAtNextDepth > 1 else 0
+        nextRowHeight = graphHeight / \
+            (numNodesAtNextDepth - 1) if numNodesAtNextDepth > 1 else 0
         targetTextHeight = nextRowHeight / 2 * .7 if nextRowHeight != 0 else maxTextHeight
         targetTextHeight = min(targetTextHeight, maxTextHeight)
         for nextBredth in node[1]:
-            nextNodeCoords = getCoordsAtDepthBredth(depth + 1, nextBredth[0] - 1)
+            nextNodeCoords = getCoordsAtDepthBredth(
+                depth + 1, nextBredth[0] - 1)
             textX = lerp(nodeX, nextNodeCoords[0], .5)
             textY = lerp(nodeY, nextNodeCoords[1], .5)
             text = nextBredth[2]
@@ -140,9 +169,12 @@ for depth, column in enumerate(graph):
             textWidth = right - left
             textHeight = bottom - top
             textMargin = textHeight / 10
-            graphDraw.rounded_rectangle(((textX - textWidth / 2 - textMargin, textY - textHeight / 2 - textMargin), (textX + textWidth / 2 + textMargin, textY + textHeight / 2 + textMargin)), radius=textHeight / 10, outline=textBackgroundBorderColor, fill=textBackgroundColor, width=lineWidth)
-            graphDraw.text((textX - textWidth / 2 - left, textY - textHeight / 2 - top), text=text, font=font)
-        graphDraw.arc(((nodeX - nodeRadius, nodeY - nodeRadius), (nodeX + nodeRadius, nodeY + nodeRadius)), 0, 360, nodeColor, nodeRadius + 1)
+            graphDraw.rounded_rectangle(((textX - textWidth / 2 - textMargin, textY - textHeight / 2 - textMargin), (textX + textWidth / 2 + textMargin,
+                                        textY + textHeight / 2 + textMargin)), radius=textHeight / 10, outline=textBackgroundBorderColor, fill=textBackgroundColor, width=lineWidth)
+            graphDraw.text((textX - textWidth / 2 - left, textY -
+                           textHeight / 2 - top), text=text, font=font)
+        graphDraw.arc(((nodeX - nodeRadius, nodeY - nodeRadius), (nodeX +
+                      nodeRadius, nodeY + nodeRadius)), 0, 360, nodeColor, nodeRadius + 1)
 
 graphImage.show()
 graphImage.save('graph.png')
