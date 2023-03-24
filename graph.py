@@ -1,3 +1,4 @@
+from io import BufferedWriter
 from PIL import Image, ImageDraw, ImageFont
 import argparse
 import json
@@ -10,6 +11,8 @@ parser.add_argument('moveTree', type=argparse.FileType(
     'r'), help='a JSON file containing the move tree')
 parser.add_argument('font', type=argparse.FileType(
     'rb'), help='a TrueType or OpenType font file to use when graphing')
+parser.add_argument('--outputFile', dest='outputFile',
+                    help='output file', type=argparse.FileType('wb'))
 parser.add_argument('--width', dest='width', default=1920,
                     type=int, help='width of the output image')
 parser.add_argument('--height', dest='height', default=1080,
@@ -105,6 +108,9 @@ textBoxRadiusScale = args.textBoxRadiusScale / 10
 textBoxBorderWidthScale = args.textBoxBorderWidthScale / 10
 showImage = args.showImage
 showImageAtEachDepth = args.showImageAtEachDepth
+outputFile = args.outputFile
+if outputFile is None:
+    outputFile = 'graph.png'
 backgroundColor = (88, 91, 112)
 forceMateColor = (200, 10, 10)
 checkColor = (10, 150, 50)
@@ -228,4 +234,6 @@ for depth, column in enumerate(graph):
 
 if showImage or showImageAtEachDepth:
     graphImage.show()
-graphImage.save('graph.png')
+graphImage.save(outputFile)
+if type(outputFile) is BufferedWriter:
+    outputFile.close()
