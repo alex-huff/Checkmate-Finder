@@ -291,8 +291,9 @@ class Board
         }
 
         MoveTreeNode moveTree = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+        Pair<MoveTreeNode, Boolean> moveTreeWithStartingTeam = new Pair<>(moveTree, this.turn.equals(Team.WHITE));
         Gson gson = new Gson();
-        String jsonString = gson.toJson(moveTree);
+        String jsonString = gson.toJson(moveTreeWithStartingTeam);
 
         try
         {
@@ -353,14 +354,14 @@ class Board
             return new Pair<>(canForceAllMoves, moveTreeNode);
         }
         else
-        { //only want moves that put in check
+        {
             List<Move> moves;
 
             if (depth < checkDepth)
             {
                 moves = this.getAllMoves();
             }
-            else
+            else // only want check moves
             {
                 moves = this.getAllCheckMoves();
             }
