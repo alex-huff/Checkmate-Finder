@@ -2,6 +2,8 @@ from io import BufferedWriter
 from PIL import Image, ImageDraw, ImageFont
 import argparse
 import json
+import sys
+import re
 
 parser = argparse.ArgumentParser(
     description='ChessGrapher: Python program that graphs the move tree outputted from CheckmateFinder.',
@@ -37,6 +39,26 @@ parser.add_argument('--showImage', dest='showImage', action='store_true',
                     help='show image in default image viewer after completion')
 parser.add_argument('--showImageAtEachDepth', dest='showImageAtEachDepth', action='store_true',
                     help='same as --showImage but for every depth')
+parser.add_argument('--backgroundColor', dest='backgroundColor',
+                    default='#585B70', help='color for the background')
+parser.add_argument('--forceMateColor', dest='forceMateColor',
+                    default='#C80A0A', help='color for marking force mate move tree paths')
+parser.add_argument('--checkColor', dest='checkColor',
+                    default='#0A9632', help='color for marking checkmate game states')
+parser.add_argument('--escapedColor', dest='escapedColor',
+                    default='#CBA6F7', help='color for marking spots where max depth was reached')
+parser.add_argument('--nodeColor', dest='nodeColor',
+                    default='#648CDC', help='color for nodes (game states)')
+parser.add_argument('--textColor', dest='textColor',
+                    default='#000000', help='color for text')
+parser.add_argument('--textBackgroundColor', dest='textBackgroundColor',
+                    default='#808080', help='color for text background')
+parser.add_argument('--textBackgroundBorderColor', dest='textBackgroundBorderColor',
+                    default='#000000', help='color for text background border')
+parser.add_argument('--whiteColor', dest='whiteColor',
+                    default='#F5E0DC', help='color for white')
+parser.add_argument('--blackColor', dest='blackColor',
+                    default='#1E1E2E', help='color for black')
 
 args = parser.parse_args()
 
@@ -46,6 +68,16 @@ args.moveTree.close()
 
 nodesPerDepth = [1]
 graph = []
+hexRegex = re.compile('^#?([A-Fa-f0-9]{6})$')
+
+
+def hexToRGB(hexString):
+    matches = hexRegex.findall(hexString)
+    if len(matches) == 0:
+        print(f'Invalid hex color: {hexString}', file=sys.stderr)
+        sys.exit(-1)
+    hexCode = matches[0]
+    return tuple(int(hexCode[i:i + 2], 16) for i in (0, 2, 4))
 
 
 def lerp(start, end, percent):
@@ -111,15 +143,16 @@ showImageAtEachDepth = args.showImageAtEachDepth
 outputFile = args.outputFile
 if outputFile is None:
     outputFile = 'graph.png'
-backgroundColor = (88, 91, 112)
-forceMateColor = (200, 10, 10)
-checkColor = (10, 150, 50)
-escapedColor = (203, 166, 247)
-nodeColor = (100, 140, 220)
-textBackgroundColor = (128, 128, 128)
-textBackgroundBorderColor = (0, 0, 0)
-blackColor = (30, 30, 46)
-whiteColor = (245, 224, 220)
+backgroundColor = hexToRGB(args.backgroundColor)
+forceMateColor = hexToRGB(args.forceMateColor)
+checkColor = hexToRGB(args.checkColor)
+escapedColor = hexToRGB(args.escapedColor)
+nodeColor = hexToRGB(args.nodeColor)
+textColor = hexToRGB(args.textColor)
+textBackgroundColor = hexToRGB(args.textBackgroundColor)
+textBackgroundBorderColor = hexToRGB(args.textBackgroundBorderColor)
+blackColor = hexToRGB(args.blackColor)
+whiteColor = hexToRGB(args.whiteColor)
 maxTextBoxHeight = args.maxTextBoxHeight
 graphImage = Image.new("RGB", (totalWidth, totalHeight), backgroundColor)
 graphDraw = ImageDraw.Draw(graphImage)
@@ -226,7 +259,7 @@ for depth, column in enumerate(graph):
             graphDraw.rounded_rectangle(((textX - textWidth / 2 - textBoxMargin, textY - textHeight / 2 - textBoxMargin), (textX + textWidth / 2 + textBoxMargin,
                                         textY + textHeight / 2 + textBoxMargin)), radius=textBoxRadius, outline=textBackgroundBorderColor, fill=textBackgroundColor, width=textBoxBorderWidth)
             graphDraw.text((textX - textWidth / 2 - left, textY -
-                           textHeight / 2 - top), text=text, font=font)
+                           textHeight / 2 - top), text=text, font=font, fill=textColor)
         graphDraw.arc(((nodeX - nodeRadius, nodeY - nodeRadius), (nodeX +
                       nodeRadius, nodeY + nodeRadius)), 0, 360, nodeColor, nodeRadius + 1)
     if showImageAtEachDepth:
