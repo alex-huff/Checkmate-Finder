@@ -7,8 +7,8 @@ import sys
 import re
 
 parser = argparse.ArgumentParser(
-    description='ChessGrapher: Python program that graphs the move tree outputted from CheckmateFinder.',
-    epilog='ChessGrapher needs a move tree. Use CheckmateFinder to graph a move tree before using ChessGrapher.'
+    description='chess-grapher: Python program that graphs the move tree outputted from CheckmateFinder.',
+    epilog='chess-grapher needs a move tree. Use CheckmateFinder to graph a move tree before using chess-grapher.'
 )
 parser.add_argument('font', type=argparse.FileType(
     'rb'), help='a TrueType or OpenType font file to use when graphing')

@@ -7,11 +7,11 @@ class ChessGame
     public static
     void main(String[] args)
     {
-        new ChessGame();
+        new ChessGame(args);
     }
 
     public
-    ChessGame()
+    ChessGame(String[] args)
     {
         //        String[] testcases = new String[] {
         //            "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq -",
@@ -83,13 +83,14 @@ class ChessGame
 //        Board board = Board.getBoardFromFEN("8/2R3pk/n4b1p/3B4/8/4P1P1/5PKP/1r6 w - -");
 //        Board board = Board.getBoardFromFEN("1KBR4/1P3qPP/P7/Q4P2/3P4/1prk1b1p/2p3p1/8 b - -", true);
 //        Board board = Board.getBoardFromFEN("8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -");
-        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
-        System.out.println(board.toString(false));
+//        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
+        Board board = Board.getBoardFromFEN(args[0]);
+        board.getForceMateMoves(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
 
-        for (Move move : board.getForceMateMoves(4, 0))
-        {
-            System.out.println("First move: " + move);
-        }
+//        for (Move move : board.getForceMateMoves(4, 0))
+//        {
+//            System.out.println("First move: " + move);
+//        }
     }
 
 }

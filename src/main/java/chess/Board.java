@@ -273,7 +273,7 @@ class Board
 
         for (Move move : moves)
         {
-            System.out.println("Analyzing move: " + move);
+//            System.out.println("Analyzing move: " + move);
             this.executeMove(move);
 
             Pair<Boolean, MoveTreeNode> pair     = this.canForceMate(1, maxDepth, checkDepth);
@@ -294,6 +294,7 @@ class Board
         Pair<MoveTreeNode, Boolean> moveTreeWithStartingTeam = new Pair<>(moveTree, this.turn.equals(Team.WHITE));
         Gson gson = new Gson();
         String jsonString = gson.toJson(moveTreeWithStartingTeam);
+        System.out.println(jsonString);
 
         try
         {
