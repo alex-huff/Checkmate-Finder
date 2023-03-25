@@ -10,11 +10,11 @@ parser = argparse.ArgumentParser(
     description='chess-grapher: Python program that graphs the move tree outputted from CheckmateFinder.',
     epilog='chess-grapher needs a move tree. Use CheckmateFinder to graph a move tree before using chess-grapher.'
 )
-parser.add_argument('font', type=argparse.FileType(
+parser.add_argument('--font', dest='font', required=True, type=argparse.FileType(
     'rb'), help='a TrueType or OpenType font file to use when graphing')
-parser.add_argument('--inputFile', dest='inputFile', type=argparse.FileType(
+parser.add_argument('--input-file', dest='inputFile', type=argparse.FileType(
     'r'), help='a JSON file containing the move tree')
-parser.add_argument('--outputFile', dest='outputFile',
+parser.add_argument('--output-file', dest='outputFile',
                     help='output file', type=argparse.FileType('wb'))
 parser.add_argument('--width', dest='width', default=1920,
                     type=int, help='width of the output image')
@@ -22,43 +22,43 @@ parser.add_argument('--height', dest='height', default=1080,
                     type=int, help='height of the output image')
 parser.add_argument('--margin', dest='margin', default=50,
                     type=int, help='margin of the output image')
-parser.add_argument('--maxTextBoxHeight', dest='maxTextBoxHeight',
+parser.add_argument('--max-text-box-height', dest='maxTextBoxHeight',
                     default=50, type=int, help='max height for text labels')
-parser.add_argument('--lineWidth', dest='lineWidth',
+parser.add_argument('--line-width', dest='lineWidth',
                     default=4, type=int, help='width of graph lines')
-parser.add_argument('--nodeRadius', dest='nodeRadius',
+parser.add_argument('--node-radius', dest='nodeRadius',
                     default=5, type=int, help='radius of graph nodes')
-parser.add_argument('--textBoxRadiusScale', dest='textBoxRadiusScale',
+parser.add_argument('--text-box-radius-scale', dest='textBoxRadiusScale',
                     default=5, choices=range(0, 11), type=float, help='radius scale for text boxes')
-parser.add_argument('--textBoxBorderWidthScale', dest='textBoxBorderWidthScale',
+parser.add_argument('--text-box-border-width-scale', dest='textBoxBorderWidthScale',
                     default=5, choices=range(0, 11), type=float, help='line width scale for text boxes')
-parser.add_argument('--skipWrongStartingMoves', dest='skipWrongStartingMoves',
+parser.add_argument('--skip-wrong-starting-moves', dest='skipWrongStartingMoves',
                     action='store_true', help='skip starting moves that don\'t lead to a forced checkmate')
-parser.add_argument('--skipWrongMoves', dest='skipWrongMoves', action='store_true',
+parser.add_argument('--skip-wrong-moves', dest='skipWrongMoves', action='store_true',
                     help='skip moves that don\'t lead to a forced checkmate')
-parser.add_argument('--showImage', dest='showImage', action='store_true',
+parser.add_argument('--show-image', dest='showImage', action='store_true',
                     help='show image in default image viewer after completion')
-parser.add_argument('--showImageAtEachDepth', dest='showImageAtEachDepth', action='store_true',
-                    help='same as --showImage but for every depth')
-parser.add_argument('--backgroundColor', dest='backgroundColor',
+parser.add_argument('--show-image-at-each-depth', dest='showImageAtEachDepth', action='store_true',
+                    help='same as --show-image but for every depth')
+parser.add_argument('--background-color', dest='backgroundColor',
                     default='#585B70', help='color for the background')
-parser.add_argument('--forceMateColor', dest='forceMateColor',
+parser.add_argument('--force-mate-color', dest='forceMateColor',
                     default='#C80A0A', help='color for marking force mate move tree paths')
-parser.add_argument('--checkColor', dest='checkColor',
+parser.add_argument('--check-color', dest='checkColor',
                     default='#0A9632', help='color for marking checkmate game states')
-parser.add_argument('--escapedColor', dest='escapedColor',
+parser.add_argument('--escaped-color', dest='escapedColor',
                     default='#CBA6F7', help='color for marking spots where max depth was reached')
-parser.add_argument('--nodeColor', dest='nodeColor',
+parser.add_argument('--node-color', dest='nodeColor',
                     default='#648CDC', help='color for nodes (game states)')
-parser.add_argument('--textColor', dest='textColor',
+parser.add_argument('--text-color', dest='textColor',
                     default='#FFFFFF', help='color for text')
-parser.add_argument('--textBackgroundColor', dest='textBackgroundColor',
+parser.add_argument('--text-background-color', dest='textBackgroundColor',
                     default='#808080', help='color for text background')
-parser.add_argument('--textBackgroundBorderColor', dest='textBackgroundBorderColor',
+parser.add_argument('--text-background-border-color', dest='textBackgroundBorderColor',
                     default='#000000', help='color for text background border')
-parser.add_argument('--whiteColor', dest='whiteColor',
+parser.add_argument('--white-color', dest='whiteColor',
                     default='#F5E0DC', help='color for white')
-parser.add_argument('--blackColor', dest='blackColor',
+parser.add_argument('--black-color', dest='blackColor',
                     default='#1E1E2E', help='color for black')
 
 args = parser.parse_args()
@@ -69,7 +69,7 @@ if inputFile is None:
     if not os.isatty(0):
         moveTree = json.load(sys.stdin)
     else:
-        print('No move tree given. Either specify an input file with --inputFile or pipe in valid JSON.', file=sys.stdout)
+        print('No move tree given. Either specify an input file with --input-file or pipe in valid JSON.', file=sys.stdout)
         sys.exit(-1)
 else:
     moveTree = json.load(inputFile)

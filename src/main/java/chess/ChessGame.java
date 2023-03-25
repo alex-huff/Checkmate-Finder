@@ -1,10 +1,8 @@
 package chess;
 
 import com.google.gson.Gson;
+import org.apache.commons.cli.*;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 
 public
@@ -91,29 +89,90 @@ class ChessGame
         //        Board board = Board.getBoardFromFEN("1KBR4/1P3qPP/P7/Q4P2/3P4/1prk1b1p/2p3p1/8 b - -", true);
         //        Board board = Board.getBoardFromFEN("8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -");
         //        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
-        Board      board      = Board.getBoardFromFEN(args[0]);
-        int        maxDepth   = Integer.parseInt(args[1]);
-        int        checkDepth = Integer.parseInt(args[2]);
-        List<Move> forceMoves = board.getForceMateMoves(maxDepth, checkDepth);
-//        MoveTree   moveTree   = board.getMoveTree(maxDepth, checkDepth);
-
-        Gson   gson       = new Gson();
-//        String jsonString = gson.toJson(moveTree);
-        //        System.out.println(jsonString);
-
-//        try
-//        {
-//            Files.writeString(Path.of("moveTree.json"), jsonString);
-//        }
-//        catch (IOException e)
-//        {
-//            throw new RuntimeException(e);
-//        }
-
-        for (Move move : forceMoves)
+        Options fullOptions = new Options();
+        Option fenOption = Option.builder().longOpt("fen").argName("fen").hasArg().required()
+            .desc("the FEN representation of the chess game, not including half/full move number").build();
+        Option mirroredOption = Option.builder().longOpt("mirrored").argName("mirrored").hasArg(false)
+            .desc("whether or not to mirror the given FEN").build();
+        Option depthOption = Option.builder().longOpt("depth").argName("depth").hasArg().required()
+            .desc("the search depth").build();
+        Option checkDepthOption = Option.builder().longOpt("check-depth").argName("check-depth").hasArg().required()
+            .desc("the depth at which to exclude moves that don't put opponent into check " +
+                  "(drastically reduces tree size)").build();
+        Option generateMoveTreeOption = Option.builder().longOpt("generate-move-tree").argName("generate-move-tree")
+            .hasArg(false).desc("generate a move tree instead of listing moves to play").build();
+        Option helpOption = Option.builder().longOpt("help").option("h").argName("help").hasArg(false)
+            .desc("show this help page").build();
+        fullOptions.addOption(fenOption);
+        fullOptions.addOption(mirroredOption);
+        fullOptions.addOption(depthOption);
+        fullOptions.addOption(checkDepthOption);
+        fullOptions.addOption(helpOption);
+        fullOptions.addOption(generateMoveTreeOption);
+        Options preTerminatingOptions = new Options();
+        preTerminatingOptions.addOption(helpOption);
+        CommandLineParser parser = new DefaultParser();
+        CommandLine       line;
+        try
         {
-            System.out.println("Found move: " + move);
+            line = parser.parse(preTerminatingOptions, args, true);
+            if (!(line.getOptions().length == 0))
+            {
+                if (line.hasOption(helpOption))
+                {
+                    HelpFormatter helpFormatter = new HelpFormatter();
+                    helpFormatter.printHelp("checkmate-finder", fullOptions);
+                    System.exit(1);
+                    return;
+                }
+            }
+            line = parser.parse(fullOptions, args);
         }
+        catch (ParseException pe)
+        {
+            System.err.println("Parsing error: " + pe.getMessage());
+            System.exit(-1);
+            return;
+        }
+
+        String  fenString        = line.getOptionValue(fenOption);
+        boolean isMirrored       = line.hasOption(mirroredOption);
+        int     depth            = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
+        int     checkDepth       = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
+        Board   board            = Board.getBoardFromFEN(fenString, isMirrored);
+        boolean generateMoveTree = line.hasOption(generateMoveTreeOption);
+
+        if (generateMoveTree)
+        {
+            MoveTree moveTree   = board.getMoveTree(depth, checkDepth);
+            Gson     gson       = new Gson();
+            String   jsonString = gson.toJson(moveTree);
+            System.out.println(jsonString);
+        }
+        else
+        {
+            List<Move> forceMoves = board.getForceMateMoves(depth, checkDepth);
+            for (Move move : forceMoves)
+            {
+                System.out.println("Found move: " + move);
+            }
+        }
+    }
+
+    private static
+    int tryParseInt(String intString, String name)
+    {
+        try
+        {
+            return Integer.parseInt(intString);
+        }
+        catch (NumberFormatException ignored)
+        {
+            System.err.println("Failed to parse " + name + ": " + intString);
+            System.exit(-1);
+        }
+
+        return -1;
     }
 
 }
