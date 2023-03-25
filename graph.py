@@ -1,5 +1,6 @@
 from io import BufferedWriter
 from PIL import Image, ImageDraw, ImageFont
+import os
 import argparse
 import json
 import sys
@@ -9,10 +10,10 @@ parser = argparse.ArgumentParser(
     description='ChessGrapher: Python program that graphs the move tree outputted from CheckmateFinder.',
     epilog='ChessGrapher needs a move tree. Use CheckmateFinder to graph a move tree before using ChessGrapher.'
 )
-parser.add_argument('moveTree', type=argparse.FileType(
-    'r'), help='a JSON file containing the move tree')
 parser.add_argument('font', type=argparse.FileType(
     'rb'), help='a TrueType or OpenType font file to use when graphing')
+parser.add_argument('--inputFile', dest='inputFile', type=argparse.FileType(
+    'r'), help='a JSON file containing the move tree')
 parser.add_argument('--outputFile', dest='outputFile',
                     help='output file', type=argparse.FileType('wb'))
 parser.add_argument('--width', dest='width', default=1920,
@@ -50,7 +51,7 @@ parser.add_argument('--escapedColor', dest='escapedColor',
 parser.add_argument('--nodeColor', dest='nodeColor',
                     default='#648CDC', help='color for nodes (game states)')
 parser.add_argument('--textColor', dest='textColor',
-                    default='#000000', help='color for text')
+                    default='#FFFFFF', help='color for text')
 parser.add_argument('--textBackgroundColor', dest='textBackgroundColor',
                     default='#808080', help='color for text background')
 parser.add_argument('--textBackgroundBorderColor', dest='textBackgroundBorderColor',
@@ -60,11 +61,20 @@ parser.add_argument('--whiteColor', dest='whiteColor',
 parser.add_argument('--blackColor', dest='blackColor',
                     default='#1E1E2E', help='color for black')
 
+print(sys.argv)
 args = parser.parse_args()
 
 print('Loading move tree...')
-moveTree = json.load(args.moveTree)
-args.moveTree.close()
+inputFile = args.inputFile
+if inputFile is None:
+    if not os.isatty(0):
+        moveTree = json.load(sys.stdin)
+    else:
+        print('No move tree given. Either specify an input file with --inputFile or pipe in valid JSON.', file=sys.stdout)
+        sys.exit(-1)
+else:
+    moveTree = json.load(inputFile)
+    inputFile.close()
 
 nodesPerDepth = [1]
 graph = []
