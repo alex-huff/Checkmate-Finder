@@ -1,5 +1,12 @@
 package chess;
 
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+
 public
 class ChessGame
 {
@@ -78,19 +85,35 @@ class ChessGame
         //        3894594
         //        164075551
 
-//        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
-//        Board board = Board.getBoardFromFEN("3k4/6p1/3K1pPp/3PrP2/p7/P7/3Q3P/1q6 w - -");
-//        Board board = Board.getBoardFromFEN("8/2R3pk/n4b1p/3B4/8/4P1P1/5PKP/1r6 w - -");
-//        Board board = Board.getBoardFromFEN("1KBR4/1P3qPP/P7/Q4P2/3P4/1prk1b1p/2p3p1/8 b - -", true);
-//        Board board = Board.getBoardFromFEN("8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -");
-//        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
-        Board board = Board.getBoardFromFEN(args[0]);
-        board.getForceMateMoves(Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        //        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
+        //        Board board = Board.getBoardFromFEN("3k4/6p1/3K1pPp/3PrP2/p7/P7/3Q3P/1q6 w - -");
+        //        Board board = Board.getBoardFromFEN("8/2R3pk/n4b1p/3B4/8/4P1P1/5PKP/1r6 w - -");
+        //        Board board = Board.getBoardFromFEN("1KBR4/1P3qPP/P7/Q4P2/3P4/1prk1b1p/2p3p1/8 b - -", true);
+        //        Board board = Board.getBoardFromFEN("8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -");
+        //        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
+        Board      board      = Board.getBoardFromFEN(args[0]);
+        int        maxDepth   = Integer.parseInt(args[1]);
+        int        checkDepth = Integer.parseInt(args[2]);
+        List<Move> forceMoves = board.getForceMateMoves(maxDepth, checkDepth);
+//        MoveTree   moveTree   = board.getMoveTree(maxDepth, checkDepth);
 
-//        for (Move move : board.getForceMateMoves(4, 0))
+        Gson   gson       = new Gson();
+//        String jsonString = gson.toJson(moveTree);
+        //        System.out.println(jsonString);
+
+//        try
 //        {
-//            System.out.println("First move: " + move);
+//            Files.writeString(Path.of("moveTree.json"), jsonString);
 //        }
+//        catch (IOException e)
+//        {
+//            throw new RuntimeException(e);
+//        }
+
+        for (Move move : forceMoves)
+        {
+            System.out.println("Found move: " + move);
+        }
     }
 
 }

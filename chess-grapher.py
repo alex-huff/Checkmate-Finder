@@ -61,7 +61,6 @@ parser.add_argument('--whiteColor', dest='whiteColor',
 parser.add_argument('--blackColor', dest='blackColor',
                     default='#1E1E2E', help='color for black')
 
-print(sys.argv)
 args = parser.parse_args()
 
 print('Loading move tree...')
@@ -134,10 +133,10 @@ def recurseMoveTree(moveTreeNode, depth):
 skipWrongStartingMoves = args.skipWrongStartingMoves
 skipWrongMoves = args.skipWrongMoves
 print('Generating graph structure...')
-recurseMoveTree(moveTree['a'], 0)
+recurseMoveTree(moveTree['root'], 0)
 
 maxNodesPerDepth = max([len(i) for i in graph])
-startingTeam = 'white' if moveTree['b'] else 'black'
+startingTeam = 'white' if moveTree['isWhitesTurn'] else 'black'
 totalWidth = args.width
 totalHeight = args.height
 margin = args.margin
