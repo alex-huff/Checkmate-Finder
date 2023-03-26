@@ -25,66 +25,124 @@ In this tree, blue dots represent game states. The leftmost dot is the initial g
 This example tree does have this recursive property, and so it represents a forced checkmate. In fact, for this example, any of white's initial moves can lead to a forced checkmate.
 
 ## In Action
-Let's show a trivial example, white's turn:
+Let's start with a trivial example:
 
-![board](https://user-images.githubusercontent.com/38389408/225085853-4a9d9eb6-b45c-417f-9704-7d090a764d91.png)
+<table width=100%>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/225085853-4a9d9eb6-b45c-417f-9704-7d090a764d91.png" alt="Initial board state">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/225085872-e71a97d7-980c-4409-b977-08678b9c5fc9.png" alt="White: Qe8+">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/225085957-d1b24bde-f5b4-4ffe-95be-835667d0aeab.png" alt="Black: Rxe8">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/225085994-9b70fe88-3952-4567-bdb1-1c84e1050e0a.png" alt="White: Rxe8#">
+    </td>
+  </tr>
+  <tr>
+    <td align=center>
+      Initial board state
+    </td>
+    <td align=center>
+      White: Qe8+
+    </td>
+    <td align=center>
+      Black: Rxe8
+    </td>
+    <td align=center>
+      White: Rxe8#
+    </td>
+  </tr>
+</table>
 
-Using CheckmateFinder with the input parameters:
+We can use CheckmateFinder to generate a tree that tells us how to checkmate from this initial state. We do this by running checkmate-finder.jar to generate a JSON representation of the move tree, which we then pipe into the python graphing program.
 
-FEN: rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -
+Here is the command that generates the graph below:
 
-CheckDepth: 0
+```shell
+java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -' \
+--depth 4 --check-depth 0 --generate-move-tree  | python chess-grapher.py \
+--font <TTF or OTF Font> --width 1600 --height 900 --max-text-box-height 40
+```
 
-Depth: 4
-
-Yields the move `(e4-e8)`.
-
-Now let's perform that move.
-
-![board(1)](https://user-images.githubusercontent.com/38389408/225085872-e71a97d7-980c-4409-b977-08678b9c5fc9.png)
-
-Black's turn, they capture our queen!
-
-![board(2)](https://user-images.githubusercontent.com/38389408/225085957-d1b24bde-f5b4-4ffe-95be-835667d0aeab.png)
-
-Using CheckmateFinder again with the new input parameters:
-
-FEN: rn2r1k1/1pq2p1p/p2p1bpB/3P4/P7/2PB4/5PPP/2R1R1K1 w - -
-
-CheckDepth: 0
-
-Depth: 2
-
-Yields the move `(e1-e8)`, checkmate!
-
-![board(3)](https://user-images.githubusercontent.com/38389408/225085994-9b70fe88-3952-4567-bdb1-1c84e1050e0a.png)
-
-Here is a tree just like the one shown previously, but representing this game:
-
-![graph](https://user-images.githubusercontent.com/38389408/225401663-4c37d9c4-d437-4ea0-a471-39028b3ff666.png)
-
+![m2](https://user-images.githubusercontent.com/38389408/227753244-2328b45c-6f57-4e45-a738-67e4dbb31e5c.png)
 
 In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. But, `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
 
 Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
 
-![board](https://user-images.githubusercontent.com/38389408/225177682-ecc6be4b-edb9-47f6-820f-bdd72c608291.png)
+<table width=100%>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754781-68975798-7e3f-4b0e-ac6a-c6a16d66544a.png" alt="Initial board state">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754780-8e95a97f-48ba-4a8b-8231-b624c2f79b5b.png" alt="White: Kg4">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754779-df60cc7b-65fd-4a27-b31d-27860f33fef2.png" alt="Black: Kd4">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754778-4d492949-abda-4212-bf0e-f68dd9c39622.png" alt="White: Rd3+">
+    </td>
+  </tr>
+  <tr>
+    <td align=center>
+      Initial board state
+    </td>
+    <td align=center>
+      White: Kg4
+    </td>
+    <td align=center>
+      Black: Kd4
+    </td>
+    <td align=center>
+      White: Rd3+
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754777-0b1e7cdd-7ddf-4fcb-8279-6182dadc8006.png" alt="Black: Ke5">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754775-911b3a9d-889b-4cfa-9122-b8554f39e2ee.png" alt="White: Kg5">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754774-f43a8a17-ffde-4c92-9284-7a24328a8e0b.png" alt="Black: Pe6">
+    </td>
+    <td>
+      <img src="https://user-images.githubusercontent.com/38389408/227754773-a26d3d57-231e-4f76-b996-478b5e987a91.png" alt="White: Nd7#">
+    </td>
+  </tr>
+  <tr>
+    <td align=center>
+      Black: Ke5
+    </td>
+    <td align=center>
+      White: Kg5
+    </td>
+    <td align=center>
+      Black: Pe6
+    </td>
+    <td align=center>
+      White: Nd7#
+    </td>
+  </tr>
+</table>
 
-Using CheckmateFinder with the input parameters:
+We can also use CheckmateFinder to solve this mate in 4 by running the following command:
 
-FEN: 8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -
+```shell
+java -jar checkmate-finder.jar --fen '8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -' \
+--depth 8 --check-depth 5 --generate-move-tree --generate-single-move | python \
+chess-grapher.py --font <TTF or OTF Font> --width 1600 --height 1200 \
+--skip-wrong-moves --max-text-box-height 45
+```
 
-CheckDepth: 5
-
-Depth: 10
-
-Yields the move `(g3-f4)`.
-
-Here is the tree proving that `(g3-f4)` leads to a mate in 4:
-
-![graph](https://user-images.githubusercontent.com/38389408/225403171-e1823470-a4db-4794-aa0c-c97b521222ce.png)
-
-Note: this tree is omitting all paths that don't directly lead to a forced mate. It would be absolutely massive if all paths were included.
+Note: this tree is omitting all paths that don't directly lead to a forced mate (--skip-wrong-moves). It would be absolutely massive if all paths were included.
 
 ## Verifying compliance with chess rules (en passant, promotion, castling)
 To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed.
