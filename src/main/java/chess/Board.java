@@ -163,7 +163,7 @@ class Board
         this.reverseMove(move);
     }
 
-    private
+    public
     List<Move> getAllMoves()
     {
         List<Move> moves = new ArrayList<>();
@@ -184,7 +184,7 @@ class Board
         return moves;
     }
 
-    private
+    public
     List<Move> getAllCheckMoves()
     {
         List<Move> moves = new ArrayList<>();
@@ -220,6 +220,11 @@ class Board
     public
     MoveTree getMoveTree(int maxDepth, int checkDepth)
     {
+        return this.getMoveTree(maxDepth, checkDepth, null);
+    }
+    public
+    MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove)
+    {
         List<Move> moves;
 
         if (checkDepth > 0)
@@ -237,6 +242,7 @@ class Board
 
         for (Move move : moves)
         {
+            if (startMove != null && !startMove.toString().equals(move.toString())) continue;
             this.executeMove(move);
 
             Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, true);

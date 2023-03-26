@@ -3,7 +3,9 @@ package chess;
 import com.google.gson.Gson;
 import org.apache.commons.cli.*;
 
+import java.util.InputMismatchException;
 import java.util.List;
+import java.util.Scanner;
 
 public
 class ChessGame
@@ -90,43 +92,36 @@ class ChessGame
         //        Board board = Board.getBoardFromFEN("8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -");
         //        Board board = Board.getBoardFromFEN("rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -", false);
         Options fullOptions = new Options();
-        Option fenOption = Option.builder().longOpt("fen").argName("fen").hasArg().required()
+        Option fenOption = Option.builder().longOpt("fen").argName("fen").hasArg()
             .desc("the FEN representation of the chess game, not including half/full move number").build();
         Option mirroredOption = Option.builder().longOpt("mirrored").argName("mirrored").hasArg(false)
             .desc("whether or not to mirror the given FEN").build();
-        Option depthOption = Option.builder().longOpt("depth").argName("depth").hasArg().required()
-            .desc("the search depth").build();
-        Option checkDepthOption = Option.builder().longOpt("check-depth").argName("check-depth").hasArg().required()
-            .desc("the depth at which to exclude moves that don't put opponent into check " +
-                  "(drastically reduces tree size)").build();
+        Option depthOption = Option.builder().longOpt("depth").argName("depth").hasArg().desc("the search depth")
+            .build();
+        Option checkDepthOption = Option.builder().longOpt("check-depth").argName("check-depth").hasArg().desc(
+            "the depth at which to exclude moves that don't put opponent into check " +
+            "(drastically reduces tree size)").build();
         Option generateMoveTreeOption = Option.builder().longOpt("generate-move-tree").argName("generate-move-tree")
             .hasArg(false).desc("generate a move tree instead of listing moves to play").build();
+        Option generateSingleMoveOption = Option.builder().longOpt("generate-single-move")
+            .argName("generate-single-move").hasArg(false).desc(
+                "Reduce move tree to a single starting move of your choice. (only relevant with --generate-move-tree)")
+            .build();
         Option helpOption = Option.builder().longOpt("help").option("h").argName("help").hasArg(false)
             .desc("show this help page").build();
+
         fullOptions.addOption(fenOption);
         fullOptions.addOption(mirroredOption);
         fullOptions.addOption(depthOption);
         fullOptions.addOption(checkDepthOption);
-        fullOptions.addOption(helpOption);
         fullOptions.addOption(generateMoveTreeOption);
-        Options preTerminatingOptions = new Options();
-        preTerminatingOptions.addOption(helpOption);
+        fullOptions.addOption(generateSingleMoveOption);
+        fullOptions.addOption(helpOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine       line;
         try
         {
-            line = parser.parse(preTerminatingOptions, args, true);
-            if (!(line.getOptions().length == 0))
-            {
-                if (line.hasOption(helpOption))
-                {
-                    HelpFormatter helpFormatter = new HelpFormatter();
-                    helpFormatter.printHelp("checkmate-finder", fullOptions);
-                    System.exit(1);
-                    return;
-                }
-            }
-            line = parser.parse(fullOptions, args);
+            line = parser.parse(fullOptions, args, false);
         }
         catch (ParseException pe)
         {
@@ -135,18 +130,43 @@ class ChessGame
             return;
         }
 
-        String  fenString        = line.getOptionValue(fenOption);
-        boolean isMirrored       = line.hasOption(mirroredOption);
-        int     depth            = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
-        int     checkDepth       = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
-        Board   board            = Board.getBoardFromFEN(fenString, isMirrored);
-        boolean generateMoveTree = line.hasOption(generateMoveTreeOption);
+        if (line.hasOption(helpOption))
+        {
+            HelpFormatter helpFormatter = new HelpFormatter();
+            helpFormatter.printHelp("checkmate-finder", fullOptions);
+            System.exit(1);
+            return;
+        }
+
+        String  fenString          = line.getOptionValue(fenOption);
+        boolean isMirrored         = line.hasOption(mirroredOption);
+        boolean generateMoveTree   = line.hasOption(generateMoveTreeOption);
+        boolean generateSingleMove = line.hasOption(generateSingleMoveOption);
+        Board   board              = Board.getBoardFromFEN(fenString, isMirrored);
+
+        if (!line.hasOption(depthOption) || !line.hasOption(checkDepthOption) || !line.hasOption(fenOption))
+        {
+            System.err.println("--fen, --depth, and --check-depth must be specified");
+            System.exit(-1);
+            return;
+        }
+
+        int depth      = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
+        int checkDepth = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
 
         if (generateMoveTree)
         {
-            MoveTree moveTree   = board.getMoveTree(depth, checkDepth);
-            Gson     gson       = new Gson();
-            String   jsonString = gson.toJson(moveTree);
+            MoveTree moveTree;
+            if (generateSingleMove)
+            {
+                moveTree = board.getMoveTree(depth, checkDepth, ChessGame.pickFirstMove(board));
+            }
+            else
+            {
+                moveTree = board.getMoveTree(depth, checkDepth);
+            }
+            Gson   gson       = new Gson();
+            String jsonString = gson.toJson(moveTree);
             System.out.println(jsonString);
         }
         else
@@ -173,6 +193,38 @@ class ChessGame
         }
 
         return -1;
+    }
+
+    private static
+    Move pickFirstMove(Board board)
+    {
+        Scanner    scanner = new Scanner(System.in);
+        List<Move> moves   = board.getAllMoves();
+        for (int i = 0; i < moves.size(); i++)
+        {
+            System.err.println(i + 1 + ": " + moves.get(i).toString());
+        }
+        int choice;
+        while (true)
+        {
+            System.err.println("Choose a move between " + 1 + " and " + moves.size());
+            try
+            {
+                choice = scanner.nextInt();
+                if (choice < 1 || choice > moves.size())
+                {
+                    System.err.println("Invalid choice, please try again");
+                    continue;
+                }
+                break;
+            }
+            catch (InputMismatchException ignored)
+            {
+                scanner.nextLine();
+                System.err.println("Invalid choice, please try again");
+            }
+        }
+        return moves.get(choice - 1);
     }
 
 }
