@@ -142,6 +142,8 @@ chess-grapher.py --font <TTF or OTF Font> --width 1600 --height 1200 \
 --skip-wrong-moves --max-text-box-height 45
 ```
 
+![m4](https://user-images.githubusercontent.com/38389408/227752883-864a037f-3247-4a7c-8770-223a4e9ba69e.png)
+
 Note: this tree is omitting all paths that don't directly lead to a forced mate (--skip-wrong-moves). It would be absolutely massive if all paths were included.
 
 ## Verifying compliance with chess rules (en passant, promotion, castling)
