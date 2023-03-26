@@ -1,10 +1,10 @@
 # CheckmateFinder
 ## About
-CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. For a forced checkmate, it does not matter what moves the opponent plays, there is always a way to checkmate them. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles. Many chess puzzles expect the player to find the first move in a checkmate sequence. CheckmateFinder can often find this first move.
+CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. For a forced checkmate, it does not matter what moves the opponent plays, there is always a way to checkmate them. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles.
 
-Since the checkmate sequence depends on what moves the opponent plays, CheckmateFinder will only provide the first move if it finds a forced checkmate (unless you save the move tree to JSON and graph it with the python script). After the opponent makes their next move (and the new game state is entered into the program), CheckmateFinder is guaranteed to find the next move since it has already proven that there is a forced checkmate from the initial board state.
+By default, CheckmateFinder will provide the first move in a forced checkmate sequence. Since the checkmate sequence depends on what moves the opponent plays, CheckmateFinder will only provide the first move if it finds a forced checkmate. CheckmateFinder can also generate a JSON representation of the move tree which can be supplied to the included chess-grapher.py script in order to generate a graphic representation of the tree.
 
-Currently, CheckmateFinder has no graphical interface, and can only be controlled by manually entering the [FEN (Forsyth–Edwards Notation)](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) of the game into the program. Along with the FEN, a depth must be provided that tells CheckmateFinder how many moves ahead to search. Another depth, the "check depth," must also be provided, that tells CheckmateFinder how many turns it should consider non-check moves (this drastically increases the search time). The higher the depths, the more likely it is that CheckmateFinder will find a forced mate. With higher depths also comes increased search time, and with unreasonably high depths, the program will not terminate in your lifetime. CheckmateFinder is not an optimized program, but an absolute brute-force approach to calculating the next move that is only useful when a game is near completion.
+CheckmateFinder can be controlled from the command line by providing the [FEN (Forsyth–Edwards Notation)](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) of the game with the --fen argument. Along with the FEN, a depth must be provided (with --depth) that tells CheckmateFinder how many moves ahead to search. Another parameter, the "check depth," must also be provided (with --check-depth), that tells CheckmateFinder how many turns it should consider non-check moves (this drastically increases the search time). The higher the depths, the more likely it is that CheckmateFinder will find a forced mate. With higher depths also comes increased search time, and with unreasonably high depths, the program will not terminate in your lifetime. CheckmateFinder is not an optimized program, but an absolute brute-force approach to calculating moves that is only useful when a game is near completion.
 
 A proper chess engine will use advanced heuristics along with hard-coded solutions to certain patterns to ensure that it can make a good move in a reasonable amount of time. CheckmateFinder is not a chess engine, it is not even guaranteed to provide you with a move. CheckmateFinder is primarily a proof of concept, and was made out of my frustration with a puzzle that could be solved much easier by a computer (or somebody reasonably good at chess).
 
@@ -64,8 +64,8 @@ Here is the command that generates the graph below:
 
 ```shell
 java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -' \
---depth 4 --check-depth 0 --generate-move-tree  | python chess-grapher.py \
---font <TTF or OTF Font> --width 1600 --height 900 --max-text-box-height 40
+--depth 4 --check-depth 0 --generate-move-tree | python chess-grapher.py \
+--font <TTF or OTF Font> --width 1600 --height 900 --mFound move: (e4-e8)ax-text-box-height 40
 ```
 
 ![m2](https://user-images.githubusercontent.com/38389408/227753244-2328b45c-6f57-4e45-a738-67e4dbb31e5c.png)
