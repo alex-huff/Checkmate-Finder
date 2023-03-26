@@ -1,17 +1,15 @@
 # CheckmateFinder
 ## About
-CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. For a forced checkmate, it does not matter what moves the opponent plays, there is always a way to checkmate them. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles.
+CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles.
 
-By default, CheckmateFinder will provide the first move in a forced checkmate sequence. Since the checkmate sequence depends on what moves the opponent plays, CheckmateFinder will only provide the first move if it finds a forced checkmate. CheckmateFinder can also generate a JSON representation of the move tree which can be supplied to the included chess-grapher.py script in order to generate a graphic representation of the tree.
+By default, CheckmateFinder will try to provide the first move in a forced checkmate sequence. Since the checkmate sequence depends on what moves the opponent plays, CheckmateFinder will only provide the first move if it can prove there exists a forced checkmate ("mate in n"). CheckmateFinder can also generate a JSON representation of the move tree which can be supplied to the included chess-grapher.py script in order to generate a graphic representation of the tree.
 
 CheckmateFinder can be controlled from the command line by providing the [FEN (Forsyth–Edwards Notation)](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) of the game with the --fen argument. Along with the FEN, a depth must be provided (with --depth) that tells CheckmateFinder how many moves ahead to search. Another parameter, the "check depth," must also be provided (with --check-depth), that tells CheckmateFinder how many turns it should consider non-check moves (this drastically increases the search time). The higher the depths, the more likely it is that CheckmateFinder will find a forced mate. With higher depths also comes increased search time, and with unreasonably high depths, the program will not terminate in your lifetime. CheckmateFinder is not an optimized program, but an absolute brute-force approach to calculating moves that is only useful when a game is near completion.
 
 A proper chess engine will use advanced heuristics along with hard-coded solutions to certain patterns to ensure that it can make a good move in a reasonable amount of time. CheckmateFinder is not a chess engine, it is not even guaranteed to provide you with a move. CheckmateFinder is primarily a proof of concept, and was made out of my frustration with a puzzle that could be solved much easier by a computer (or somebody reasonably good at chess).
 
 ## How it works
-CheckmateFinder under the hood tries to find a move, where all possible opponent counter-moves result in a new board state where a new move can be performed by the player that results in a new board state where this process is recursed upon to prove that in the end, there are no moves the opponent can make to escape a checkmate given optimal play. This process recurses to a maximum depth, where if there still exists a move for the opponent to make that gets them out of check, the program terminates without a returned move. CheckmateFinder only returns a move when it has proven that no sequence of opponent counter-moves can ultimately get them out of an inevitable checkmate.
-
-It is easier to understand how CheckmateFinder works with a visual:
+It is easiest to understand how CheckmateFinder works with a visual:
 
 ![graph](https://user-images.githubusercontent.com/38389408/225073488-0eed7c2a-ff1c-4b13-97d2-2c3c4f978450.png)
 
