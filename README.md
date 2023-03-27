@@ -63,7 +63,7 @@ Here is the command that generates the graph below:
 ```shell
 java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP/2R1R1K1 w - -' \
 --depth 4 --check-depth 0 --generate-move-tree | python chess-grapher.py \
---font <TTF or OTF Font> --width 1600 --height 900 --max-text-box-height 40
+--font <path to TTF or OTF Font> --width 1600 --height 900 --max-text-box-height 40
 ```
 
 ![m2](https://user-images.githubusercontent.com/38389408/227753244-2328b45c-6f57-4e45-a738-67e4dbb31e5c.png)
@@ -135,8 +135,8 @@ We can also use CheckmateFinder to solve this mate in 4 by running the following
 
 ```shell
 java -jar checkmate-finder.jar --fen '8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -' \
---depth 8 --check-depth 5 --generate-move-tree --generate-single-move | python \
-chess-grapher.py --font <TTF or OTF Font> --width 1600 --height 1200 \
+--depth 8 --check-depth 5 --generate-move-tree | python \
+chess-grapher.py --font <path to TTF or OTF Font> --width 1600 --height 1200 \
 --skip-wrong-moves --max-text-box-height 45
 ```
 
