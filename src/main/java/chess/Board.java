@@ -218,12 +218,13 @@ class Board
     }
 
     public
-    MoveTree getMoveTree(int maxDepth, int checkDepth)
+    MoveTree getMoveTree(int maxDepth, int checkDepth, boolean skipWrongMoves)
     {
-        return this.getMoveTree(maxDepth, checkDepth, null);
+        return this.getMoveTree(maxDepth, checkDepth, null, skipWrongMoves);
     }
+
     public
-    MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove)
+    MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove, boolean skipWrongMoves)
     {
         List<Move> moves;
 
@@ -242,16 +243,22 @@ class Board
 
         for (Move move : moves)
         {
-            if (startMove != null && !startMove.toString().equals(move.toString())) continue;
+            if (startMove != null && !startMove.toString().equals(move.toString()))
+            {
+                continue;
+            }
             this.executeMove(move);
 
-            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, true);
+            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, true, skipWrongMoves);
 
             this.reverseMove(move);
 
-            moveStrings.add(move.toString());
-            isMoveTreeForcedCheckmate.add(pair.getA());
-            moveTreeNodes.add(pair.getB());
+            if (!skipWrongMoves || pair.getA())
+            {
+                moveStrings.add(move.toString());
+                isMoveTreeForcedCheckmate.add(pair.getA());
+                moveTreeNodes.add(pair.getB());
+            }
         }
 
         MoveTreeNode moveTreeRoot = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
@@ -279,7 +286,7 @@ class Board
             System.out.println("Analyzing move: " + move);
             this.executeMove(move);
 
-            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, false);
+            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, false, false);
 
             this.reverseMove(move);
 
@@ -293,11 +300,13 @@ class Board
     }
 
     public
-    Pair<Boolean, MoveTreeNode> canForceMate(int depth, int maxDepth, int checkDepth, boolean generateMoveTree)
+    Pair<Boolean, MoveTreeNode> canForceMate(int depth, int maxDepth, int checkDepth, boolean generateMoveTree,
+                                             boolean skipWrongMoves)
     { //can attacking team force the mate
         if (depth == maxDepth)
         { //path has escape
-            return new Pair<>(false, generateMoveTree ? new MoveTreeNode(true, null, null, null) : null);
+            return new Pair<>(false,
+                (generateMoveTree && !skipWrongMoves) ? new MoveTreeNode(true, null, null, null) : null);
         }
 
         List<MoveTreeNode> moveTreeNodes             = generateMoveTree ? new ArrayList<>() : null;
@@ -316,13 +325,13 @@ class Board
                     this.executeMove(move);
 
                     Pair<Boolean, MoveTreeNode> pair = this.canForceMate(depth + 1, maxDepth, checkDepth,
-                        generateMoveTree);
+                        generateMoveTree, skipWrongMoves);
 
                     this.reverseMove(move);
 
                     if (!pair.getA())
                     {
-                        if (!generateMoveTree)
+                        if (!generateMoveTree || skipWrongMoves)
                         {
                             return new Pair<>(false, null);
                         }
@@ -331,9 +340,13 @@ class Board
 
                     if (generateMoveTree)
                     {
-                        moveTreeNodes.add(pair.getB());
-                        moveStrings.add(move.toString());
-                        isMoveTreeForcedCheckmate.add(pair.getA());
+                        boolean shouldAddToMoveTree = !skipWrongMoves || pair.getA();
+                        if (shouldAddToMoveTree)
+                        {
+                            moveTreeNodes.add(pair.getB());
+                            moveStrings.add(move.toString());
+                            isMoveTreeForcedCheckmate.add(pair.getA());
+                        }
                     }
                 }
             }
@@ -344,8 +357,12 @@ class Board
 
             if (generateMoveTree)
             {
-                MoveTreeNode moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate,
-                    moveTreeNodes);
+                MoveTreeNode moveTreeNode         = null;
+                boolean      shouldReturnMoveTree = !skipWrongMoves || canForceAllMoves;
+                if (shouldReturnMoveTree)
+                {
+                    moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+                }
                 return new Pair<>(canForceAllMoves, moveTreeNode);
             }
 
@@ -370,7 +387,8 @@ class Board
             {
                 this.executeMove(move);
 
-                Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth, generateMoveTree);
+                Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth, generateMoveTree,
+                    skipWrongMoves);
 
                 this.reverseMove(move);
 
@@ -385,16 +403,25 @@ class Board
 
                 if (generateMoveTree)
                 {
-                    moveTreeNodes.add(pair.getB());
-                    moveStrings.add(move.toString());
-                    isMoveTreeForcedCheckmate.add(pair.getA());
+                    boolean shouldAddToMoveTree = !skipWrongMoves || pair.getA();
+                    if (shouldAddToMoveTree)
+                    {
+                        moveTreeNodes.add(pair.getB());
+                        moveStrings.add(move.toString());
+                        isMoveTreeForcedCheckmate.add(pair.getA());
+                    }
                 }
             }
 
             if (generateMoveTree)
             {
-                return new Pair<>(canForce,
-                    new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes));
+                MoveTreeNode moveTreeNode         = null;
+                boolean      shouldReturnMoveTree = !skipWrongMoves || canForce;
+                if (shouldReturnMoveTree)
+                {
+                    moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+                }
+                return new Pair<>(canForce, moveTreeNode);
             }
 
             return new Pair<>(canForce, null);

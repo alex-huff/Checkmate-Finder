@@ -107,6 +107,8 @@ class ChessGame
             .argName("generate-single-move").hasArg(false).desc(
                 "Reduce move tree to a single starting move of your choice. (only relevant with --generate-move-tree)")
             .build();
+        Option skipWrongMovesOption = Option.builder().longOpt("skip-wrong-moves").argName("skip-wrong-moves")
+            .hasArg(false).desc("skip moves that don't lead to a forced checkmate").build();
         Option helpOption = Option.builder().longOpt("help").option("h").argName("help").hasArg(false)
             .desc("show this help page").build();
 
@@ -116,6 +118,7 @@ class ChessGame
         fullOptions.addOption(checkDepthOption);
         fullOptions.addOption(generateMoveTreeOption);
         fullOptions.addOption(generateSingleMoveOption);
+        fullOptions.addOption(skipWrongMovesOption);
         fullOptions.addOption(helpOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine       line;
@@ -138,11 +141,10 @@ class ChessGame
             return;
         }
 
-        String  fenString          = line.getOptionValue(fenOption);
         boolean isMirrored         = line.hasOption(mirroredOption);
         boolean generateMoveTree   = line.hasOption(generateMoveTreeOption);
         boolean generateSingleMove = line.hasOption(generateSingleMoveOption);
-        Board   board              = Board.getBoardFromFEN(fenString, isMirrored);
+        boolean skipWrongMoves     = line.hasOption(skipWrongMovesOption);
 
         if (!line.hasOption(depthOption) || !line.hasOption(checkDepthOption) || !line.hasOption(fenOption))
         {
@@ -151,19 +153,21 @@ class ChessGame
             return;
         }
 
-        int depth      = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
-        int checkDepth = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
+        String fenString  = line.getOptionValue(fenOption);
+        int    depth      = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
+        int    checkDepth = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
+        Board  board      = Board.getBoardFromFEN(fenString, isMirrored);
 
         if (generateMoveTree)
         {
             MoveTree moveTree;
             if (generateSingleMove)
             {
-                moveTree = board.getMoveTree(depth, checkDepth, ChessGame.pickFirstMove(board));
+                moveTree = board.getMoveTree(depth, checkDepth, ChessGame.pickFirstMove(board), skipWrongMoves);
             }
             else
             {
-                moveTree = board.getMoveTree(depth, checkDepth);
+                moveTree = board.getMoveTree(depth, checkDepth, skipWrongMoves);
             }
             Gson   gson       = new Gson();
             String jsonString = gson.toJson(moveTree);
