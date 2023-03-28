@@ -165,6 +165,28 @@ class ChessGame
             return;
         }
 
+        if (generateSingleMove && !generateMoveTree)
+        {
+            System.err.println("--generate-single-move is not relevant without --generate-move-tree");
+            System.exit(-1);
+            return;
+        }
+
+        if (skipWrongMoves && !generateMoveTree)
+        {
+            System.err.println("--skip-wrong-moves is not relevant without --generate-move-tree");
+            System.exit(-1);
+            return;
+        }
+
+        if (skipSuboptimalMoves && (!generateMoveTree || !skipWrongMoves))
+        {
+            System.err.println(
+                "--skip-wrong-moves is not relevant without --generate-move-tree and --skip-wrong-moves");
+            System.exit(-1);
+            return;
+        }
+
         String fenString  = line.getOptionValue(fenOption);
         int    depth      = ChessGame.tryParseInt(line.getOptionValue(depthOption), "depth");
         int    checkDepth = ChessGame.tryParseInt(line.getOptionValue(checkDepthOption), "check-depth");
