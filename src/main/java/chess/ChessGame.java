@@ -182,7 +182,7 @@ class ChessGame
         if (skipSuboptimalMoves && (!generateMoveTree || !skipWrongMoves))
         {
             System.err.println(
-                "--skip-wrong-moves is not relevant without --generate-move-tree and --skip-wrong-moves");
+                "--skip-suboptimal-moves is not relevant without --generate-move-tree and --skip-wrong-moves");
             System.exit(-1);
             return;
         }
