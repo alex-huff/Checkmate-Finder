@@ -38,7 +38,7 @@ class PiecePawn extends Piece
             return moves;
         }
 
-        //en passant
+        // en passant
 
         int initialRow = this.getPos().getRow();
         int initialCol = this.getPos().getCol();
@@ -100,8 +100,6 @@ class PiecePawn extends Piece
             }
         }
 
-        //straight moves. added here because they are not part of the span as they cannot capture pieces
-
         if (this.getTeam().equals(Team.WHITE))
         {
             int r = initialRow + 1;
@@ -147,7 +145,7 @@ class PiecePawn extends Piece
             c = initialCol;
 
             if (initialRow == 1)
-            { //can only move two spaces forward on first move
+            {
                 if (this.board.inBounds(r, c))
                 {
                     piece = this.board.getPieceAt(r, c);
@@ -204,7 +202,7 @@ class PiecePawn extends Piece
             c = initialCol;
 
             if (initialRow == 6)
-            { //can only move two spaces forward on first move
+            {
                 if (this.board.inBounds(r, c))
                 {
                     piece = this.board.getPieceAt(r, c);

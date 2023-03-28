@@ -1,7 +1,6 @@
 package chess;
 
 import util.LinkedStack;
-import util.Pair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,14 +9,46 @@ public
 class Board
 {
 
-    private Piece[][]               board  = new Piece[8][8];
-    private Team                    turn;
-    private BoardPos                enTar;
-    private boolean                 canWhiteQueenCastle;
-    private boolean                 canWhiteKingCastle;
-    private boolean                 canBlackQueenCastle;
-    private boolean                 canBlackKingCastle;
-    private LinkedStack<BoardState> states = new LinkedStack<>();
+    public static
+    class MoveTreeGenerationNode
+    {
+
+        public final MoveTreeNode moveTreeNode;
+        public final int          minMovesToForceMate;
+
+        public
+        MoveTreeGenerationNode(MoveTreeNode moveTreeNode, int minMovesToForceMate)
+        {
+            this.moveTreeNode        = moveTreeNode;
+            this.minMovesToForceMate = minMovesToForceMate;
+        }
+
+    }
+
+    public static
+    class ForceMateMove
+    {
+
+        public final Move move;
+        public final int  minMovesToForceMate;
+
+        public
+        ForceMateMove(Move move, int minMovesToForceMate)
+        {
+            this.move                = move;
+            this.minMovesToForceMate = minMovesToForceMate;
+        }
+
+    }
+
+    private final Piece[][]               board  = new Piece[8][8];
+    private       Team                    turn;
+    private       BoardPos                enTar;
+    private       boolean                 canWhiteQueenCastle;
+    private       boolean                 canWhiteKingCastle;
+    private       boolean                 canBlackQueenCastle;
+    private       boolean                 canBlackKingCastle;
+    private final LinkedStack<BoardState> states = new LinkedStack<>();
 
     public
     Board(Team turn, BoardPos enTar, boolean canWhiteQueenCastle, boolean canWhiteKingCastle,
@@ -107,7 +138,7 @@ class Board
 
     public
     boolean tileInAttack(int row, int col, Team team)
-    { //returns true of a tile is under attack by a piece of the opposite team
+    {
         for (int r = 0; r < 8; r++)
         {
             for (int c = 0; c < 8; c++)
@@ -218,15 +249,23 @@ class Board
     }
 
     public
-    MoveTree getMoveTree(int maxDepth, int checkDepth, boolean skipWrongMoves)
+    MoveTree getMoveTree(int maxDepth, int checkDepth, boolean skipWrongMoves, int skipSuboptimalMovesDepth)
     {
-        return this.getMoveTree(maxDepth, checkDepth, null, skipWrongMoves);
+        return this.getMoveTree(maxDepth, checkDepth, null, skipWrongMoves, skipSuboptimalMovesDepth);
     }
 
     public
-    MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove, boolean skipWrongMoves)
+    MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove, boolean skipWrongMoves,
+                         int skipSuboptimalMovesDepth)
     {
-        List<Move> moves;
+        List<Move>         moves;
+        int                minMovesToForceMate       = Integer.MAX_VALUE;
+        List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
+        List<String>       moveStrings               = new ArrayList<>();
+        List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
+        boolean            onlyOptimalMove           = skipSuboptimalMovesDepth == 0;
+        Move               optimalMove               = null;
+        MoveTreeNode       optimalMoveTreeNode       = null;
 
         if (checkDepth > 0)
         {
@@ -236,10 +275,6 @@ class Board
         {
             moves = this.getAllCheckMoves();
         }
-
-        List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
-        List<String>       moveStrings               = new ArrayList<>();
-        List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
 
         for (Move move : moves)
         {
@@ -247,26 +282,54 @@ class Board
             {
                 continue;
             }
+
             this.executeMove(move);
 
-            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, true, skipWrongMoves);
+            MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(1, maxDepth, checkDepth,
+                skipWrongMoves, skipSuboptimalMovesDepth);
+            int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
+            boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
 
             this.reverseMove(move);
 
-            if (!skipWrongMoves || pair.getA())
+            if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
             {
                 moveStrings.add(move.toString());
-                isMoveTreeForcedCheckmate.add(pair.getA());
-                moveTreeNodes.add(pair.getB());
+                isMoveTreeForcedCheckmate.add(doesMoveForceMate);
+                moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
+            }
+
+            if (minMovesToForceMateNextDepth <= minMovesToForceMate)
+            {
+                optimalMove         = move;
+                optimalMoveTreeNode = moveTreeGenerationNode.moveTreeNode;
+                minMovesToForceMate = minMovesToForceMateNextDepth;
             }
         }
 
-        MoveTreeNode moveTreeRoot = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+        if (onlyOptimalMove && Integer.MAX_VALUE != minMovesToForceMate)
+        {
+            moveTreeNodes.add(optimalMoveTreeNode);
+            moveStrings.add(optimalMove.toString());
+            isMoveTreeForcedCheckmate.add(true);
+        }
+
+        MoveTreeNode moveTreeRoot;
+
+        if (skipWrongMoves && minMovesToForceMate == Integer.MAX_VALUE)
+        {
+            moveTreeRoot = null;
+        }
+        else
+        {
+            moveTreeRoot = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+        }
+
         return new MoveTree(moveTreeRoot, this.turn.equals(Team.WHITE));
     }
 
     public
-    List<Move> getForceMateMoves(int maxDepth, int checkDepth)
+    List<ForceMateMove> getForceMateMoves(int maxDepth, int checkDepth)
     {
         List<Move> moves;
 
@@ -279,20 +342,20 @@ class Board
             moves = this.getAllCheckMoves();
         }
 
-        List<Move> forceMateMoves = new ArrayList<>();
+        List<ForceMateMove> forceMateMoves = new ArrayList<>();
 
         for (Move move : moves)
         {
             System.out.println("Analyzing move: " + move);
             this.executeMove(move);
 
-            Pair<Boolean, MoveTreeNode> pair = this.canForceMate(1, maxDepth, checkDepth, false, false);
+            int minMovesToForceMate = this.isForcedMate(1, maxDepth, checkDepth);
 
             this.reverseMove(move);
 
-            if (pair.getA())
+            if (minMovesToForceMate != Integer.MAX_VALUE)
             {
-                forceMateMoves.add(move);
+                forceMateMoves.add(new ForceMateMove(move, minMovesToForceMate + 1));
             }
         }
 
@@ -300,131 +363,193 @@ class Board
     }
 
     public
-    Pair<Boolean, MoveTreeNode> canForceMate(int depth, int maxDepth, int checkDepth, boolean generateMoveTree,
-                                             boolean skipWrongMoves)
-    { //can attacking team force the mate
+    int isForcedMate(int depth, int maxDepth, int checkDepth)
+    {
         if (depth == maxDepth)
-        { //path has escape
-            return new Pair<>(false,
-                (generateMoveTree && !skipWrongMoves) ? new MoveTreeNode(true, null, null, null) : null);
-        }
-
-        List<MoveTreeNode> moveTreeNodes             = generateMoveTree ? new ArrayList<>() : null;
-        List<String>       moveStrings               = generateMoveTree ? new ArrayList<>() : null;
-        List<Boolean>      isMoveTreeForcedCheckmate = generateMoveTree ? new ArrayList<>() : null;
-
-        if (depth % 2 == 1)
-        { //defending team tries to escape
-            List<Move> allMoves         = this.getAllMoves();
-            boolean    canForceAllMoves = true;
-
-            if (allMoves.size() != 0)
-            {
-                for (Move move : allMoves)
-                {
-                    this.executeMove(move);
-
-                    Pair<Boolean, MoveTreeNode> pair = this.canForceMate(depth + 1, maxDepth, checkDepth,
-                        generateMoveTree, skipWrongMoves);
-
-                    this.reverseMove(move);
-
-                    if (!pair.getA())
-                    {
-                        if (!generateMoveTree || skipWrongMoves)
-                        {
-                            return new Pair<>(false, null);
-                        }
-                        canForceAllMoves = false;
-                    }
-
-                    if (generateMoveTree)
-                    {
-                        boolean shouldAddToMoveTree = !skipWrongMoves || pair.getA();
-                        if (shouldAddToMoveTree)
-                        {
-                            moveTreeNodes.add(pair.getB());
-                            moveStrings.add(move.toString());
-                            isMoveTreeForcedCheckmate.add(pair.getA());
-                        }
-                    }
-                }
-            }
-            else
-            {
-                canForceAllMoves = this.isInCheck(this.turn);
-            }
-
-            if (generateMoveTree)
-            {
-                MoveTreeNode moveTreeNode         = null;
-                boolean      shouldReturnMoveTree = !skipWrongMoves || canForceAllMoves;
-                if (shouldReturnMoveTree)
-                {
-                    moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
-                }
-                return new Pair<>(canForceAllMoves, moveTreeNode);
-            }
-
-            return new Pair<>(canForceAllMoves, null);
-        }
-        else
         {
+            return Integer.MAX_VALUE;
+        }
+
+        if (depth % 2 == 1) // opponent's turn
+        {
+            int        minMovesToForceMate = 0;
+            List<Move> allMoves            = this.getAllMoves();
+
+            if (allMoves.size() == 0)
+            {
+                return this.isInCheck(this.turn) ? 0 : Integer.MAX_VALUE;
+            }
+
+            for (Move move : allMoves)
+            {
+                this.executeMove(move);
+
+                int minMovesToForceMateNextDepth = this.isForcedMate(depth + 1, maxDepth, checkDepth);
+
+                this.reverseMove(move);
+
+                if (minMovesToForceMateNextDepth == Integer.MAX_VALUE)
+                {
+                    return Integer.MAX_VALUE;
+                }
+
+                minMovesToForceMate = Math.max(minMovesToForceMate, minMovesToForceMateNextDepth);
+            }
+
+            return minMovesToForceMate;
+        }
+        else // your turn
+        {
+            int        minMovesToForceMate = Integer.MAX_VALUE;
             List<Move> moves;
 
             if (depth < checkDepth)
             {
                 moves = this.getAllMoves();
             }
-            else // only want check moves
+            else
             {
                 moves = this.getAllCheckMoves();
             }
-
-            boolean canForce = false;
 
             for (Move move : moves)
             {
                 this.executeMove(move);
 
-                Pair<Boolean, MoveTreeNode> pair = canForceMate(depth + 1, maxDepth, checkDepth, generateMoveTree,
-                    skipWrongMoves);
+                int minMovesToForceMateNextDepth = this.isForcedMate(depth + 1, maxDepth, checkDepth);
 
                 this.reverseMove(move);
 
-                if (pair.getA())
-                {
-                    if (!generateMoveTree)
-                    {
-                        return new Pair<>(true, null);
-                    }
-                    canForce = true;
-                }
-
-                if (generateMoveTree)
-                {
-                    boolean shouldAddToMoveTree = !skipWrongMoves || pair.getA();
-                    if (shouldAddToMoveTree)
-                    {
-                        moveTreeNodes.add(pair.getB());
-                        moveStrings.add(move.toString());
-                        isMoveTreeForcedCheckmate.add(pair.getA());
-                    }
-                }
+                minMovesToForceMate = Math.min(minMovesToForceMate, minMovesToForceMateNextDepth);
             }
 
-            if (generateMoveTree)
+            return minMovesToForceMate == Integer.MAX_VALUE ? Integer.MAX_VALUE : minMovesToForceMate + 1;
+        }
+    }
+
+    public
+    MoveTreeGenerationNode generateMoveTree(int depth, int maxDepth, int checkDepth, boolean skipWrongMoves,
+                                            int skipSuboptimalMovesDepth)
+    {
+        if (depth == maxDepth)
+        {
+            return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(true, null, null, null),
+                Integer.MAX_VALUE);
+        }
+
+        List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
+        List<String>       moveStrings               = new ArrayList<>();
+        List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
+
+        if (depth % 2 == 1) // opponent's turn
+        {
+            List<Move> allMoves = this.getAllMoves();
+
+            if (allMoves.size() == 0)
             {
-                MoveTreeNode moveTreeNode         = null;
-                boolean      shouldReturnMoveTree = !skipWrongMoves || canForce;
-                if (shouldReturnMoveTree)
+                if (this.isInCheck(this.turn))
                 {
-                    moveTreeNode = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
+                    return new MoveTreeGenerationNode(
+                        new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), 0);
                 }
-                return new Pair<>(canForce, moveTreeNode);
+
+                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+                    Integer.MAX_VALUE);
             }
 
-            return new Pair<>(canForce, null);
+            int minMovesToForceMate = 0;
+
+            for (Move move : allMoves)
+            {
+                this.executeMove(move);
+
+                MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(depth + 1, maxDepth, checkDepth,
+                    skipWrongMoves, skipSuboptimalMovesDepth);
+                int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
+                boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
+
+                this.reverseMove(move);
+
+                if (!doesMoveForceMate && skipWrongMoves)
+                {
+                    return new MoveTreeGenerationNode(null, Integer.MAX_VALUE);
+                }
+
+                minMovesToForceMate = Math.max(minMovesToForceMate, minMovesToForceMateNextDepth);
+
+                moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
+                moveStrings.add(move.toString());
+                isMoveTreeForcedCheckmate.add(doesMoveForceMate);
+            }
+
+            return new MoveTreeGenerationNode(
+                new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), minMovesToForceMate);
+        }
+        else // your turn
+        {
+            List<Move>   moves;
+            int          minMovesToForceMate = Integer.MAX_VALUE;
+            boolean      onlyOptimalMove     = depth >= skipSuboptimalMovesDepth;
+            Move         optimalMove         = null;
+            MoveTreeNode optimalMoveTreeNode = null;
+
+            if (depth < checkDepth)
+            {
+                moves = this.getAllMoves();
+            }
+            else
+            {
+                moves = this.getAllCheckMoves();
+            }
+
+            if (moves.size() == 0)
+            {
+                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+                    Integer.MAX_VALUE);
+            }
+
+            for (Move move : moves)
+            {
+                this.executeMove(move);
+
+                MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(depth + 1, maxDepth, checkDepth,
+                    skipWrongMoves, skipSuboptimalMovesDepth);
+                int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
+                boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
+
+                this.reverseMove(move);
+
+                if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
+                {
+                    moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
+                    moveStrings.add(move.toString());
+                    isMoveTreeForcedCheckmate.add(doesMoveForceMate);
+                }
+
+                if (minMovesToForceMateNextDepth <= minMovesToForceMate)
+                {
+                    optimalMove         = move;
+                    optimalMoveTreeNode = moveTreeGenerationNode.moveTreeNode;
+                    minMovesToForceMate = minMovesToForceMateNextDepth;
+                }
+            }
+
+            if (onlyOptimalMove && Integer.MAX_VALUE != minMovesToForceMate)
+            {
+                moveTreeNodes.add(optimalMoveTreeNode);
+                moveStrings.add(optimalMove.toString());
+                isMoveTreeForcedCheckmate.add(true);
+            }
+
+            if (minMovesToForceMate == Integer.MAX_VALUE)
+            {
+                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
+                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
+            }
+
+            return new MoveTreeGenerationNode(
+                new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+                minMovesToForceMate + 1);
         }
     }
 
@@ -483,7 +608,7 @@ class Board
         this.setPieceAt(move.to, null);
 
         if (move.joint != null)
-        { //only castling right now
+        { // only castling right now
             toMove = this.getPieceAt(move.joint.to);
 
             this.setPieceAt(move.joint.from, toMove);
@@ -524,7 +649,7 @@ class Board
         this.toggleTurn();
 
         if (toMove instanceof PiecePawn)
-        { //en passant target square
+        { // en passant target square
             if (toMove.getPos().getRow() == 1 && toMove.getTeam().equals(Team.WHITE))
             {
                 if (move.to.getRow() == 3)
@@ -661,14 +786,14 @@ class Board
             this.setPieceAt(move.take, null);
         }
 
-        this.setPieceAt(move.from, null); //set original pos to null
+        this.setPieceAt(move.from, null); // set original pos to null
         this.setPieceAt(move.to, toMove);
 
         if (move.joint != null)
-        { //only castling right now
+        { // only castling right now
             toMove = this.getPieceAt(move.joint.from);
 
-            this.setPieceAt(move.joint.from, null); //set original pos to null
+            this.setPieceAt(move.joint.from, null); // set original pos to null
             this.setPieceAt(move.joint.to, toMove);
         }
     }

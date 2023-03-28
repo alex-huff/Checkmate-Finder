@@ -94,21 +94,25 @@ class ChessGame
         Options fullOptions = new Options();
         Option fenOption = Option.builder().longOpt("fen").argName("fen").hasArg()
             .desc("the FEN representation of the chess game, not including half/full move number").build();
-        Option mirroredOption = Option.builder().longOpt("mirrored").argName("mirrored").hasArg(false)
+        Option mirroredOption = Option.builder().longOpt("mirrored").hasArg(false)
             .desc("whether or not to mirror the given FEN").build();
         Option depthOption = Option.builder().longOpt("depth").argName("depth").hasArg().desc("the search depth")
             .build();
         Option checkDepthOption = Option.builder().longOpt("check-depth").argName("check-depth").hasArg().desc(
             "the depth at which to exclude moves that don't put opponent into check " +
             "(drastically reduces tree size)").build();
-        Option generateMoveTreeOption = Option.builder().longOpt("generate-move-tree").argName("generate-move-tree")
-            .hasArg(false).desc("generate a move tree instead of listing moves to play").build();
-        Option generateSingleMoveOption = Option.builder().longOpt("generate-single-move")
-            .argName("generate-single-move").hasArg(false).desc(
+        Option generateMoveTreeOption = Option.builder().longOpt("generate-move-tree").hasArg(false)
+            .desc("generate a move tree instead of listing moves to play").build();
+        Option generateSingleMoveOption = Option.builder().longOpt("generate-single-move").hasArg(false).desc(
                 "Reduce move tree to a single starting move of your choice. (only relevant with --generate-move-tree)")
             .build();
-        Option skipWrongMovesOption = Option.builder().longOpt("skip-wrong-moves").argName("skip-wrong-moves")
-            .hasArg(false).desc("skip moves that don't lead to a forced checkmate").build();
+        Option skipWrongMovesOption = Option.builder().longOpt("skip-wrong-moves").hasArg(false)
+            .desc("skip moves that don't lead to a forced checkmate (only relevant with --generate-move-tree)").build();
+        Option skipSubOptimalMovesOption = Option.builder().longOpt("skip-suboptimal-moves").argName("depth").hasArg()
+            .optionalArg(true).desc(
+                "When there are multiple correct moves, pick the best one. Takes an optional depth which specifies " +
+                "which depth to start skipping suboptimal moves (defaults to 0). (only relevant with " +
+                "--generate-move-tree and --skip-wrong-moves)").build();
         Option helpOption = Option.builder().longOpt("help").option("h").argName("help").hasArg(false)
             .desc("show this help page").build();
 
@@ -119,6 +123,7 @@ class ChessGame
         fullOptions.addOption(generateMoveTreeOption);
         fullOptions.addOption(generateSingleMoveOption);
         fullOptions.addOption(skipWrongMovesOption);
+        fullOptions.addOption(skipSubOptimalMovesOption);
         fullOptions.addOption(helpOption);
         CommandLineParser parser = new DefaultParser();
         CommandLine       line;
@@ -141,10 +146,17 @@ class ChessGame
             return;
         }
 
-        boolean isMirrored         = line.hasOption(mirroredOption);
-        boolean generateMoveTree   = line.hasOption(generateMoveTreeOption);
-        boolean generateSingleMove = line.hasOption(generateSingleMoveOption);
-        boolean skipWrongMoves     = line.hasOption(skipWrongMovesOption);
+        boolean isMirrored                     = line.hasOption(mirroredOption);
+        boolean generateMoveTree               = line.hasOption(generateMoveTreeOption);
+        boolean generateSingleMove             = line.hasOption(generateSingleMoveOption);
+        boolean skipWrongMoves                 = line.hasOption(skipWrongMovesOption);
+        boolean skipSuboptimalMoves            = line.hasOption(skipSubOptimalMovesOption);
+        String  skipSuboptimalMovesDepthString = line.getOptionValue(skipSubOptimalMovesOption);
+        int skipSuboptimalMovesDepth = skipSuboptimalMoves ? (skipSuboptimalMovesDepthString == null ? 0
+                                                                                                     : ChessGame.tryParseInt(
+                                                                                                         skipSuboptimalMovesDepthString,
+                                                                                                         "skip-suboptimal-moves-depth"))
+                                                           : Integer.MAX_VALUE;
 
         if (!line.hasOption(depthOption) || !line.hasOption(checkDepthOption) || !line.hasOption(fenOption))
         {
@@ -163,11 +175,12 @@ class ChessGame
             MoveTree moveTree;
             if (generateSingleMove)
             {
-                moveTree = board.getMoveTree(depth, checkDepth, ChessGame.pickFirstMove(board), skipWrongMoves);
+                moveTree = board.getMoveTree(depth, checkDepth, ChessGame.pickFirstMove(board), skipWrongMoves,
+                    skipSuboptimalMovesDepth);
             }
             else
             {
-                moveTree = board.getMoveTree(depth, checkDepth, skipWrongMoves);
+                moveTree = board.getMoveTree(depth, checkDepth, skipWrongMoves, skipSuboptimalMovesDepth);
             }
             Gson   gson       = new Gson();
             String jsonString = gson.toJson(moveTree);
@@ -175,10 +188,15 @@ class ChessGame
         }
         else
         {
-            List<Move> forceMoves = board.getForceMateMoves(depth, checkDepth);
-            for (Move move : forceMoves)
+            List<Board.ForceMateMove> forceMateMoves = board.getForceMateMoves(depth, checkDepth);
+            if (forceMateMoves.size() == 0)
             {
-                System.out.println("Found move: " + move);
+                System.out.println("No forced checkmates found");
+                return;
+            }
+            for (Board.ForceMateMove forceMateMove : forceMateMoves)
+            {
+                System.out.println("Found mate in " + forceMateMove.minMovesToForceMate + ": " + forceMateMove.move);
             }
         }
     }
@@ -202,8 +220,9 @@ class ChessGame
     private static
     Move pickFirstMove(Board board)
     {
-        Scanner    scanner = new Scanner(System.in);
-        List<Move> moves   = board.getAllMoves();
+        String     errorMessage = "Invalid choice, please try again";
+        Scanner    scanner      = new Scanner(System.in);
+        List<Move> moves        = board.getAllMoves();
         for (int i = 0; i < moves.size(); i++)
         {
             System.err.println(i + 1 + ": " + moves.get(i).toString());
@@ -217,7 +236,7 @@ class ChessGame
                 choice = scanner.nextInt();
                 if (choice < 1 || choice > moves.size())
                 {
-                    System.err.println("Invalid choice, please try again");
+                    System.err.println(errorMessage);
                     continue;
                 }
                 break;
@@ -225,7 +244,7 @@ class ChessGame
             catch (InputMismatchException ignored)
             {
                 scanner.nextLine();
-                System.err.println("Invalid choice, please try again");
+                System.err.println(errorMessage);
             }
         }
         return moves.get(choice - 1);

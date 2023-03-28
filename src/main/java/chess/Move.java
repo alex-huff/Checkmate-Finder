@@ -7,7 +7,7 @@ class Move
     public final BoardPos from;
     public final BoardPos to;
     public final BoardPos take;
-    public       Move     joint; //for castling
+    public       Move     joint; // for castling
     public       int      promotion = 0;
 
     public
@@ -51,7 +51,9 @@ class Move
         if (this.joint != null)
         {
             str += "&&";
-            //str += this.joint.toString(); //if this and this.joint refer to each other as their joint move this will reach max recursion depth
+            // str += this.joint.toString();
+            // if this and this.joint refer to each other as their joint move this
+            // will reach max recursion depth
             str += this.joint.singleStr();
         }
         else if (this.promotion != 0)
