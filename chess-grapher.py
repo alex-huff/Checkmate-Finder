@@ -60,6 +60,8 @@ parser.add_argument('--white-color', dest='whiteColor',
                     default='#F5E0DC', help='color for white')
 parser.add_argument('--black-color', dest='blackColor',
                     default='#1E1E2E', help='color for black')
+parser.add_argument('--dont-highlight-force-mate', dest='dontHighlightForceMate', action='store_true',
+                    help='don\'t color force checkmate paths')
 
 args = parser.parse_args()
 
@@ -149,6 +151,7 @@ textBoxRadiusScale = args.textBoxRadiusScale / 10
 textBoxBorderWidthScale = args.textBoxBorderWidthScale / 10
 showImage = args.showImage
 showImageAtEachDepth = args.showImageAtEachDepth
+hightlightForceMate = not args.dontHighlightForceMate
 outputFile = args.outputFile
 if outputFile is None:
     outputFile = 'graph.png'
@@ -214,7 +217,7 @@ for depth, column in enumerate(graph):
                 nextNodeCoords = getCoordsAtDepthBredth(
                     depth + 1, nextBredth[0] - 1)
                 isForcematePath = nextBredth[1]
-                if isForcematePath:
+                if isForcematePath and hightlightForceMate:
                     graphDraw.line(((nodeX, nodeY), nextNodeCoords),
                                    forceMateColor, lineWidth * 3)
                 graphDraw.line(((nodeX, nodeY), nextNodeCoords),
