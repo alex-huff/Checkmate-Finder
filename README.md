@@ -131,7 +131,7 @@ Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 e
   </tr>
 </table>
 
-This is an example of how this game might be played, but what if black plays different moves? We can also use CheckmateFinder to solve this mate in 4 by running the following command:
+This is an example of how this game might be played, but what if black plays different moves? We can use CheckmateFinder to solve this mate in 4 by running the following command:
 
 ```shell
 java -jar checkmate-finder.jar --fen '8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -' \
