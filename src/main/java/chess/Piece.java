@@ -112,7 +112,7 @@ class Piece
         int            initialCol = this.getPos().getCol();
 
         for (Offset offset : offsets)
-        { //all spaces in offsets. used for king and knight currently
+        { // all spaces in offsets. used for king and knight currently
             int r = initialRow + offset.x;
             int c = initialCol + offset.y;
 
@@ -254,7 +254,7 @@ class Piece
         int            initialCol = initialPos.getCol();
 
         for (int r = initialPos.getRow() + 1; r < 8; r++)
-        { //right hori
+        { // right hori
             Piece piece = this.board.getPieceAt(r, initialCol);
 
             if (piece == null)
@@ -273,7 +273,7 @@ class Piece
         }
 
         for (int r = initialPos.getRow() - 1; r >= 0; r--)
-        { //left hori
+        { // left hori
             Piece piece = this.board.getPieceAt(r, initialCol);
 
             if (piece == null)
@@ -302,7 +302,7 @@ class Piece
         int            initialRow = initialPos.getRow();
 
         for (int c = initialPos.getCol() + 1; c < 8; c++)
-        { //up vert
+        { // up vert
             Piece piece = this.board.getPieceAt(initialRow, c);
 
             if (piece == null)
@@ -321,7 +321,7 @@ class Piece
         }
 
         for (int c = initialPos.getCol() - 1; c >= 0; c--)
-        { //down vert
+        { // down vert
             Piece piece = this.board.getPieceAt(initialRow, c);
 
             if (piece == null)

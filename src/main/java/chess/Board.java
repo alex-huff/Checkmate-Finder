@@ -258,90 +258,22 @@ class Board
     MoveTree getMoveTree(int maxDepth, int checkDepth, Move startMove, boolean skipWrongMoves,
                          int skipSuboptimalMovesDepth)
     {
-        List<Move>         moves;
-        int                minMovesToForceMate       = Integer.MAX_VALUE;
-        List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
-        List<String>       moveStrings               = new ArrayList<>();
-        List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
-        boolean            onlyOptimalMove           = skipSuboptimalMovesDepth == 0;
-        Move               optimalMove               = null;
-        MoveTreeNode       optimalMoveTreeNode       = null;
+        MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(0, maxDepth, checkDepth, startMove,
+            skipWrongMoves, skipSuboptimalMovesDepth);
 
-        if (checkDepth > 0)
-        {
-            moves = this.getAllMoves();
-        }
-        else
-        {
-            moves = this.getAllCheckMoves();
-        }
+        return new MoveTree(moveTreeGenerationNode.moveTreeNode, this.turn.equals(Team.WHITE));
+    }
 
-        for (Move move : moves)
-        {
-            if (startMove != null && !startMove.toString().equals(move.toString()))
-            {
-                continue;
-            }
-
-            this.executeMove(move);
-
-            MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(1, maxDepth, checkDepth,
-                skipWrongMoves, skipSuboptimalMovesDepth);
-            int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
-            boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
-
-            this.reverseMove(move);
-
-            if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
-            {
-                moveStrings.add(move.toString());
-                isMoveTreeForcedCheckmate.add(doesMoveForceMate);
-                moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-            }
-
-            if (minMovesToForceMateNextDepth <= minMovesToForceMate)
-            {
-                optimalMove         = move;
-                optimalMoveTreeNode = moveTreeGenerationNode.moveTreeNode;
-                minMovesToForceMate = minMovesToForceMateNextDepth;
-            }
-        }
-
-        if (onlyOptimalMove && Integer.MAX_VALUE != minMovesToForceMate)
-        {
-            moveTreeNodes.add(optimalMoveTreeNode);
-            moveStrings.add(optimalMove.toString());
-            isMoveTreeForcedCheckmate.add(true);
-        }
-
-        MoveTreeNode moveTreeRoot;
-
-        if (skipWrongMoves && minMovesToForceMate == Integer.MAX_VALUE)
-        {
-            moveTreeRoot = null;
-        }
-        else
-        {
-            moveTreeRoot = new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes);
-        }
-
-        return new MoveTree(moveTreeRoot, this.turn.equals(Team.WHITE));
+    private
+    String getAlgebraicNotation(Move move)
+    {
+        return "PH Str";
     }
 
     public
     List<ForceMateMove> getForceMateMoves(int maxDepth, int checkDepth)
     {
-        List<Move> moves;
-
-        if (checkDepth > 0)
-        {
-            moves = this.getAllMoves();
-        }
-        else
-        {
-            moves = this.getAllCheckMoves();
-        }
-
+        List<Move> moves = checkDepth > 0 ? this.getAllMoves() : this.getAllCheckMoves();
         List<ForceMateMove> forceMateMoves = new ArrayList<>();
 
         for (Move move : moves)
@@ -401,16 +333,7 @@ class Board
         else // your turn
         {
             int        minMovesToForceMate = Integer.MAX_VALUE;
-            List<Move> moves;
-
-            if (depth < checkDepth)
-            {
-                moves = this.getAllMoves();
-            }
-            else
-            {
-                moves = this.getAllCheckMoves();
-            }
+            List<Move> moves = depth < checkDepth ? this.getAllMoves() : this.getAllCheckMoves();
 
             for (Move move : moves)
             {
@@ -428,8 +351,8 @@ class Board
     }
 
     public
-    MoveTreeGenerationNode generateMoveTree(int depth, int maxDepth, int checkDepth, boolean skipWrongMoves,
-                                            int skipSuboptimalMovesDepth)
+    MoveTreeGenerationNode generateMoveTree(int depth, int maxDepth, int checkDepth, Move startMove,
+                                            boolean skipWrongMoves, int skipSuboptimalMovesDepth)
     {
         if (depth == maxDepth)
         {
@@ -453,8 +376,8 @@ class Board
                         new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), 0);
                 }
 
-                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
-                    Integer.MAX_VALUE);
+                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
+                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
             }
 
             int minMovesToForceMate = 0;
@@ -464,7 +387,7 @@ class Board
                 this.executeMove(move);
 
                 MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(depth + 1, maxDepth, checkDepth,
-                    skipWrongMoves, skipSuboptimalMovesDepth);
+                    null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
 
@@ -493,19 +416,13 @@ class Board
             Move         optimalMove         = null;
             MoveTreeNode optimalMoveTreeNode = null;
 
-            if (depth < checkDepth)
-            {
-                moves = this.getAllMoves();
-            }
-            else
-            {
-                moves = this.getAllCheckMoves();
-            }
+            moves = startMove != null ? List.of(startMove)
+                                      : (checkDepth > 0 ? this.getAllMoves() : this.getAllCheckMoves());
 
             if (moves.size() == 0)
             {
-                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
-                    Integer.MAX_VALUE);
+                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
+                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
             }
 
             for (Move move : moves)
@@ -513,7 +430,7 @@ class Board
                 this.executeMove(move);
 
                 MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(depth + 1, maxDepth, checkDepth,
-                    skipWrongMoves, skipSuboptimalMovesDepth);
+                    null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
 
@@ -608,7 +525,7 @@ class Board
         this.setPieceAt(move.to, null);
 
         if (move.joint != null)
-        { // only castling right now
+        { // only castling
             toMove = this.getPieceAt(move.joint.to);
 
             this.setPieceAt(move.joint.from, toMove);

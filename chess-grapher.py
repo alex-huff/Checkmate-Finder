@@ -135,6 +135,9 @@ def recurseMoveTree(moveTreeNode, depth):
 skipWrongStartingMoves = args.skipWrongStartingMoves
 skipWrongMoves = args.skipWrongMoves
 print('Generating graph structure...')
+if 'root' not in moveTree:
+    print('Empty move tree, aborting', file=sys.stderr)
+    sys.exit(-1)
 recurseMoveTree(moveTree['root'], 0)
 
 maxNodesPerDepth = max([len(i) for i in graph])
