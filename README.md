@@ -66,7 +66,7 @@ java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP
 --font <path to TTF or OTF Font> --width 1600 --height 900 --max-text-box-height 40 --show-image
 ```
 
-![m2](https://user-images.githubusercontent.com/38389408/227753244-2328b45c-6f57-4e45-a738-67e4dbb31e5c.png)
+![m2](https://user-images.githubusercontent.com/38389408/229237680-1010b1a4-09be-4fe5-9f93-f432aeef733f.png)
 
 In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. But, `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
 
@@ -109,7 +109,7 @@ Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 e
       <img src="https://user-images.githubusercontent.com/38389408/227754775-911b3a9d-889b-4cfa-9122-b8554f39e2ee.png" alt="White: Kg5">
     </td>
     <td>
-      <img src="https://user-images.githubusercontent.com/38389408/227754774-f43a8a17-ffde-4c92-9284-7a24328a8e0b.png" alt="Black: Pe6">
+      <img src="https://user-images.githubusercontent.com/38389408/227754774-f43a8a17-ffde-4c92-9284-7a24328a8e0b.png" alt="Black: e6">
     </td>
     <td>
       <img src="https://user-images.githubusercontent.com/38389408/227754773-a26d3d57-231e-4f76-b996-478b5e987a91.png" alt="White: Nd7#">
@@ -123,7 +123,7 @@ Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 e
       White: Kg5
     </td>
     <td align=center>
-      Black: Pe6
+      Black: e6
     </td>
     <td align=center>
       White: Nd7#
@@ -137,10 +137,10 @@ We can also use CheckmateFinder to solve this mate in 4 by running the following
 java -jar checkmate-finder.jar --fen '8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -' \
 --depth 8 --check-depth 5 --generate-move-tree --skip-wrong-moves | python \
 chess-grapher.py --font <path to TTF or OTF Font> --width 1600 --height 1200 \
---max-text-box-height 45 --show-image
+--max-text-box-height 45 --dont-highlight-force-mate --show-image
 ```
 
-![m4](https://user-images.githubusercontent.com/38389408/227752883-864a037f-3247-4a7c-8770-223a4e9ba69e.png)
+![m4](https://user-images.githubusercontent.com/38389408/229238060-291ada09-fbd6-462d-8074-7f568f523b3f.png)
 
 Note: this tree is omitting all paths that don't directly lead to a forced mate (--skip-wrong-moves). It would be absolutely massive if all paths were included.
 
