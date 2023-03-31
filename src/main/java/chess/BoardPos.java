@@ -4,9 +4,9 @@ public
 class BoardPos
 {
 
-    private        int    row;
-    private        int    col;
-    private static String letters = "abcdefgh";
+    private              int    row;
+    private              int    col;
+    private static final String letters = "abcdefgh";
 
     public
     BoardPos(BoardPos pos)
@@ -53,6 +53,12 @@ class BoardPos
         return letters.charAt(this.col) + Integer.toString(this.row + 1);
     }
 
+    public
+    char getFile()
+    {
+        return letters.charAt(this.col);
+    }
+
     public static
     BoardPos getPosFromStr(String str)
     {
@@ -62,7 +68,7 @@ class BoardPos
     public
     boolean equivalent(BoardPos other)
     {
-        return ((this.row == other.row) && (this.col == col));
+        return ((this.row == other.row) && (this.col == other.col));
     }
 
 }

@@ -265,15 +265,34 @@ class Board
     }
 
     private
+    String getCastleNotation(Move move)
+    {
+        return move.joint.from.getCol() == 0 ? "0-0-0" : "0-0";
+    }
+
+    private
     String getAlgebraicNotation(Move move)
     {
-        return "PH Str";
+        if (move.joint != null)
+        {
+            return this.getCastleNotation(move);
+        }
+        Piece   piece     = this.getPieceAt(move.from);
+        boolean isCapture = move.take != null;
+        String pieceLabel = piece instanceof PiecePawn ? (isCapture ? String.valueOf(move.from.getFile()) : "")
+                                                       : String.valueOf(piece.getLabel()).toUpperCase();
+        this.executeMove(move);
+        boolean isCheck     = this.isInCheck(this.turn);
+        boolean isCheckmate = isCheck && this.getAllMoves().size() == 0;
+        this.reverseMove(move);
+        String checkString = !isCheck ? "" : (isCheckmate ? "#" : "+");
+        return pieceLabel + (isCapture ? "x" : "") + move.to.toString() + checkString;
     }
 
     public
     List<ForceMateMove> getForceMateMoves(int maxDepth, int checkDepth)
     {
-        List<Move> moves = checkDepth > 0 ? this.getAllMoves() : this.getAllCheckMoves();
+        List<Move>          moves          = checkDepth > 0 ? this.getAllMoves() : this.getAllCheckMoves();
         List<ForceMateMove> forceMateMoves = new ArrayList<>();
 
         for (Move move : moves)
@@ -333,7 +352,7 @@ class Board
         else // your turn
         {
             int        minMovesToForceMate = Integer.MAX_VALUE;
-            List<Move> moves = depth < checkDepth ? this.getAllMoves() : this.getAllCheckMoves();
+            List<Move> moves               = depth < checkDepth ? this.getAllMoves() : this.getAllCheckMoves();
 
             for (Move move : moves)
             {
@@ -401,7 +420,7 @@ class Board
                 minMovesToForceMate = Math.max(minMovesToForceMate, minMovesToForceMateNextDepth);
 
                 moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                moveStrings.add(move.toString());
+                moveStrings.add(this.getAlgebraicNotation(move));
                 isMoveTreeForcedCheckmate.add(doesMoveForceMate);
             }
 
@@ -439,7 +458,7 @@ class Board
                 if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
                 {
                     moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                    moveStrings.add(move.toString());
+                    moveStrings.add(this.getAlgebraicNotation(move));
                     isMoveTreeForcedCheckmate.add(doesMoveForceMate);
                 }
 
@@ -454,7 +473,7 @@ class Board
             if (onlyOptimalMove && Integer.MAX_VALUE != minMovesToForceMate)
             {
                 moveTreeNodes.add(optimalMoveTreeNode);
-                moveStrings.add(optimalMove.toString());
+                moveStrings.add(this.getAlgebraicNotation(optimalMove));
                 isMoveTreeForcedCheckmate.add(true);
             }
 
