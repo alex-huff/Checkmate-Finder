@@ -9,35 +9,15 @@ public
 class Board
 {
 
-    public static
-    class MoveTreeGenerationNode
+    public
+    record MoveTreeGenerationNode(MoveTreeNode moveTreeNode, int minMovesToForceMate)
     {
-
-        public final MoveTreeNode moveTreeNode;
-        public final int          minMovesToForceMate;
-
-        public
-        MoveTreeGenerationNode(MoveTreeNode moveTreeNode, int minMovesToForceMate)
-        {
-            this.moveTreeNode        = moveTreeNode;
-            this.minMovesToForceMate = minMovesToForceMate;
-        }
 
     }
 
-    public static
-    class ForceMateMove
+    public
+    record ForceMateMove(Move move, int minMovesToForceMate)
     {
-
-        public final Move move;
-        public final int  minMovesToForceMate;
-
-        public
-        ForceMateMove(Move move, int minMovesToForceMate)
-        {
-            this.move                = move;
-            this.minMovesToForceMate = minMovesToForceMate;
-        }
 
     }
 
@@ -270,7 +250,7 @@ class Board
         return move.joint.from.getCol() == 0 ? "0-0-0" : "0-0";
     }
 
-    private
+    public
     String getAlgebraicNotation(Move move)
     {
         if (move.joint != null)
@@ -382,6 +362,9 @@ class Board
         List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
         List<String>       moveStrings               = new ArrayList<>();
         List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
+        MoveTreeGenerationNode failedMoveTreeGenerationNode = new MoveTreeGenerationNode(
+            skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+            Integer.MAX_VALUE);
 
         if (depth % 2 == 1) // opponent's turn
         {
@@ -395,8 +378,7 @@ class Board
                         new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), 0);
                 }
 
-                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
-                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
+                return failedMoveTreeGenerationNode;
             }
 
             int minMovesToForceMate = 0;
@@ -409,6 +391,8 @@ class Board
                     null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
+                boolean skipMoveString = moveTreeGenerationNode.moveTreeNode() == null ||
+                                         moveTreeGenerationNode.moveTreeNode().escaped();
 
                 this.reverseMove(move);
 
@@ -420,7 +404,7 @@ class Board
                 minMovesToForceMate = Math.max(minMovesToForceMate, minMovesToForceMateNextDepth);
 
                 moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                moveStrings.add(this.getAlgebraicNotation(move));
+                moveStrings.add(skipMoveString ? "" : this.getAlgebraicNotation(move));
                 isMoveTreeForcedCheckmate.add(doesMoveForceMate);
             }
 
@@ -440,8 +424,7 @@ class Board
 
             if (moves.size() == 0)
             {
-                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
-                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
+                return failedMoveTreeGenerationNode;
             }
 
             for (Move move : moves)
@@ -452,13 +435,15 @@ class Board
                     null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
+                boolean skipMoveString = moveTreeGenerationNode.moveTreeNode() == null ||
+                                         moveTreeGenerationNode.moveTreeNode().escaped();
 
                 this.reverseMove(move);
 
                 if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
                 {
                     moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                    moveStrings.add(this.getAlgebraicNotation(move));
+                    moveStrings.add(skipMoveString ? "" : this.getAlgebraicNotation(move));
                     isMoveTreeForcedCheckmate.add(doesMoveForceMate);
                 }
 
@@ -479,8 +464,7 @@ class Board
 
             if (minMovesToForceMate == Integer.MAX_VALUE)
             {
-                return new MoveTreeGenerationNode(skipWrongMoves ? null : new MoveTreeNode(false, moveStrings,
-                    isMoveTreeForcedCheckmate, moveTreeNodes), Integer.MAX_VALUE);
+                return failedMoveTreeGenerationNode;
             }
 
             return new MoveTreeGenerationNode(

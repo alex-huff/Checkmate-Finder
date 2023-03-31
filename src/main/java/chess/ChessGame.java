@@ -218,7 +218,7 @@ class ChessGame
             }
             for (Board.ForceMateMove forceMateMove : forceMateMoves)
             {
-                System.out.println("Found mate in " + forceMateMove.minMovesToForceMate + ": " + forceMateMove.move);
+                System.out.println("Found mate in " + forceMateMove.minMovesToForceMate() + ": " + forceMateMove.move());
             }
         }
     }
@@ -247,7 +247,7 @@ class ChessGame
         List<Move> moves        = board.getAllMoves();
         for (int i = 0; i < moves.size(); i++)
         {
-            System.err.println(i + 1 + ": " + moves.get(i).toString());
+            System.err.println(i + 1 + ": " + board.getAlgebraicNotation(moves.get(i)));
         }
         int choice;
         while (true)
