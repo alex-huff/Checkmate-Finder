@@ -50,13 +50,19 @@ class BoardPos
     public
     String toString()
     {
-        return letters.charAt(this.col) + Integer.toString(this.row + 1);
+        return this.getFile() + this.getRank();
     }
 
     public
-    char getFile()
+    String getFile()
     {
-        return letters.charAt(this.col);
+        return String.valueOf(letters.charAt(this.col));
+    }
+
+    public
+    String getRank()
+    {
+        return String.valueOf(this.row + 1);
     }
 
     public static

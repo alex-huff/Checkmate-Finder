@@ -313,7 +313,7 @@ class Board
                 specifyCol = true;
             }
         }
-        return (specifyCol ? String.valueOf(move.from.getFile()) : "") + (specifyRow ? (move.from.getRow() + 1) : "");
+        return (specifyCol ? move.from.getFile() : "") + (specifyRow ? move.from.getRank() : "");
     }
 
     private
