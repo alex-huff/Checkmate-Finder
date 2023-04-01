@@ -68,7 +68,7 @@ java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP
 
 ![m2](https://user-images.githubusercontent.com/38389408/229237680-1010b1a4-09be-4fe5-9f93-f432aeef733f.png)
 
-In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `(e4-e8) -> (d8-e8) -> (e1-e8)` sequence that we just played is highlighted red and fits within the maximum depth. But, `(e4-g6)` will not work since both `(f7-g6)` and `(h7-g6)` lead black to escape checkmate (for this search depth).
+In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `Qe8+ -> Rxe8 -> Rxe8#` sequence that we just played is highlighted red and fits within the maximum depth. But, `Qxg6+` will not work as a first move since both `fxg6` and `hxg6` lead black to escape checkmate (for this search depth).
 
 Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
 
