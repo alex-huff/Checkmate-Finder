@@ -125,7 +125,7 @@ def recurseMoveTree(moveTreeNode, depth):
         incrementNodeCountAtDepth(depth + 1, 1)
         if not nextNodes[i]['escaped']:
             span[1].append((getNodeCountAtDepth(
-                depth + 1), moveTreeNode['isForcedCheckmateTree'][i], moveTreeNode['moves'][i]))
+                depth + 1), moveTreeNode['isForcedCheckmateTree'][i], moveTreeNode['moveStrings'][i]))
         else:
             span[0] = True
         recurseMoveTree(nextNodes[i], depth + 1)

@@ -218,7 +218,8 @@ class ChessGame
             }
             for (Board.ForceMateMove forceMateMove : forceMateMoves)
             {
-                System.out.println("Found mate in " + forceMateMove.minMovesToForceMate() + ": " + forceMateMove.move());
+                System.out.println(
+                    "Found mate in " + forceMateMove.minMovesToForceMate() + ": " + forceMateMove.move());
             }
         }
     }
@@ -244,19 +245,19 @@ class ChessGame
     {
         String     errorMessage = "Invalid choice, please try again";
         Scanner    scanner      = new Scanner(System.in);
-        List<Move> moves        = board.getAllMoves();
-        for (int i = 0; i < moves.size(); i++)
+        List<Move> allMoves     = board.getAllMoves();
+        for (int i = 0; i < allMoves.size(); i++)
         {
-            System.err.println(i + 1 + ": " + board.getAlgebraicNotation(moves.get(i)));
+            System.err.println(i + 1 + ": " + board.getAlgebraicNotation(allMoves.get(i), allMoves));
         }
         int choice;
         while (true)
         {
-            System.err.println("Choose a move between " + 1 + " and " + moves.size());
+            System.err.println("Choose a move between " + 1 + " and " + allMoves.size());
             try
             {
                 choice = scanner.nextInt();
-                if (choice < 1 || choice > moves.size())
+                if (choice < 1 || choice > allMoves.size())
                 {
                     System.err.println(errorMessage);
                     continue;
@@ -269,7 +270,7 @@ class ChessGame
                 System.err.println(errorMessage);
             }
         }
-        return moves.get(choice - 1);
+        return allMoves.get(choice - 1);
     }
 
 }

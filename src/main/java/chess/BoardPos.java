@@ -65,10 +65,12 @@ class BoardPos
         return new BoardPos(Integer.parseInt("" + str.charAt(1)) - 1, letters.indexOf(str.charAt(0)));
     }
 
+    @Override
     public
-    boolean equivalent(BoardPos other)
+    boolean equals(Object other)
     {
-        return ((this.row == other.row) && (this.col == other.col));
+        if (!(other instanceof BoardPos otherBoardPos)) return false;
+        return ((this.row == otherBoardPos.row) && (this.col == otherBoardPos.col));
     }
 
 }

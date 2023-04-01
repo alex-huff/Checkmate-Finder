@@ -65,4 +65,18 @@ class Move
         return str;
     }
 
+    @Override
+    public
+    boolean equals(Object other)
+    {
+        if (!(other instanceof Move otherMove)) return false;
+        if (!this.from.equals(otherMove.from)) return false;
+        if (!this.to.equals(otherMove.to)) return false;
+        if (this.take == null && otherMove.take != null) return false;
+        if (this.take != null && !this.take.equals(otherMove.take)) return false;
+        if (this.joint == null && otherMove.joint != null) return false;
+        if (this.joint != null && !this.joint.equals(otherMove.joint)) return false;
+        return true;
+    }
+
 }

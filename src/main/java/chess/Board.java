@@ -240,8 +240,80 @@ class Board
     {
         MoveTreeGenerationNode moveTreeGenerationNode = this.generateMoveTree(0, maxDepth, checkDepth, startMove,
             skipWrongMoves, skipSuboptimalMovesDepth);
+        MoveTree moveTree = new MoveTree(moveTreeGenerationNode.moveTreeNode, this.turn.equals(Team.WHITE));
 
-        return new MoveTree(moveTreeGenerationNode.moveTreeNode, this.turn.equals(Team.WHITE));
+        this.convertMovesToMoveStrings(moveTree.root);
+        return moveTree;
+    }
+
+    private
+    void convertMovesToMoveStrings(MoveTreeNode moveTreeNode)
+    {
+        if (moveTreeNode == null)
+        {
+            return;
+        }
+        moveTreeNode.moveStrings = new ArrayList<>();
+        if (moveTreeNode.moves.size() > 0 && !moveTreeNode.nextNodes.get(0).escaped)
+        { // don't generate move strings for escaped paths
+            List<Move> allMoves = this.getAllMoves();
+            for (int i = 0; i < moveTreeNode.moves.size(); i++)
+            {
+                Move         move             = moveTreeNode.moves.get(i);
+                MoveTreeNode nextMoveTreeNode = moveTreeNode.nextNodes.get(i);
+                moveTreeNode.moveStrings.add(this.getAlgebraicNotation(move, allMoves));
+                this.executeMove(move);
+                this.convertMovesToMoveStrings(nextMoveTreeNode);
+                this.reverseMove(move);
+            }
+        }
+        moveTreeNode.moves = null;
+    }
+
+    private
+    String resolveAlgebraicNotationAmbiguity(Move move, boolean isCheck, boolean isCheckmate, List<Move> allMoves)
+    {
+        Piece   piece      = this.getPieceAt(move.from);
+        boolean specifyRow = false;
+        boolean specifyCol = false;
+        if (piece instanceof PiecePawn || piece instanceof PieceKing)
+        {
+            return "";
+        }
+        for (Move otherMove : allMoves)
+        {
+            if (move.from.equals(otherMove.from))
+            {
+                continue;
+            }
+            if (!move.to.equals(otherMove.to))
+            {
+                continue;
+            }
+            Piece otherPiece = this.getPieceAt(otherMove.from);
+            if (!piece.getClass().equals(otherPiece.getClass()))
+            {
+                continue;
+            }
+            this.executeMove(otherMove);
+            boolean otherMoveIsCheck     = this.isInCheck(this.turn);
+            boolean otherMoveIsCheckmate = otherMoveIsCheck && this.getAllMoves().size() == 0;
+            this.reverseMove(otherMove);
+            if (isCheck != otherMoveIsCheck || isCheckmate != otherMoveIsCheckmate)
+            {
+                continue;
+            }
+            // if we make it here, there is ambiguity between `move` and `otherMove`
+            if (move.from.getCol() == otherMove.from.getCol())
+            {
+                specifyRow = true;
+            }
+            else if (move.from.getRow() == otherMove.from.getRow())
+            {
+                specifyCol = true;
+            }
+        }
+        return (specifyCol ? String.valueOf(move.from.getFile()) : "") + (specifyRow ? (move.from.getRow() + 1) : "");
     }
 
     private
@@ -251,7 +323,7 @@ class Board
     }
 
     public
-    String getAlgebraicNotation(Move move)
+    String getAlgebraicNotation(Move move, List<Move> allMoves)
     {
         if (move.joint != null)
         {
@@ -259,14 +331,17 @@ class Board
         }
         Piece   piece     = this.getPieceAt(move.from);
         boolean isCapture = move.take != null;
-        String pieceLabel = piece instanceof PiecePawn ? (isCapture ? String.valueOf(move.from.getFile()) : "")
-                                                       : String.valueOf(piece.getLabel()).toUpperCase();
         this.executeMove(move);
         boolean isCheck     = this.isInCheck(this.turn);
         boolean isCheckmate = isCheck && this.getAllMoves().size() == 0;
         this.reverseMove(move);
-        String checkString = !isCheck ? "" : (isCheckmate ? "#" : "+");
-        return pieceLabel + (isCapture ? "x" : "") + move.to.toString() + checkString;
+        String pieceLabel = piece instanceof PiecePawn ? (isCapture ? String.valueOf(move.from.getFile()) : "")
+                                                       : String.valueOf(piece.getLabel()).toUpperCase();
+        String ambiguityString   = this.resolveAlgebraicNotationAmbiguity(move, isCheck, isCheckmate, allMoves);
+        String captureString     = isCapture ? "x" : "";
+        String destinationString = move.to.toString();
+        String checkString       = !isCheck ? "" : (isCheckmate ? "#" : "+");
+        return pieceLabel + ambiguityString + captureString + destinationString + checkString;
     }
 
     public
@@ -304,14 +379,14 @@ class Board
         if (depth % 2 == 1) // opponent's turn
         {
             int        minMovesToForceMate = 0;
-            List<Move> allMoves            = this.getAllMoves();
+            List<Move> moves               = this.getAllMoves();
 
-            if (allMoves.size() == 0)
+            if (moves.size() == 0)
             {
                 return this.isInCheck(this.turn) ? 0 : Integer.MAX_VALUE;
             }
 
-            for (Move move : allMoves)
+            for (Move move : moves)
             {
                 this.executeMove(move);
 
@@ -360,22 +435,22 @@ class Board
         }
 
         List<MoveTreeNode> moveTreeNodes             = new ArrayList<>();
-        List<String>       moveStrings               = new ArrayList<>();
+        List<Move>         moveTreeMoves             = new ArrayList<>();
         List<Boolean>      isMoveTreeForcedCheckmate = new ArrayList<>();
         MoveTreeGenerationNode failedMoveTreeGenerationNode = new MoveTreeGenerationNode(
-            skipWrongMoves ? null : new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+            skipWrongMoves ? null : new MoveTreeNode(false, moveTreeMoves, isMoveTreeForcedCheckmate, moveTreeNodes),
             Integer.MAX_VALUE);
 
         if (depth % 2 == 1) // opponent's turn
         {
-            List<Move> allMoves = this.getAllMoves();
+            List<Move> moves = this.getAllMoves();
 
-            if (allMoves.size() == 0)
+            if (moves.size() == 0)
             {
                 if (this.isInCheck(this.turn))
                 {
                     return new MoveTreeGenerationNode(
-                        new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), 0);
+                        new MoveTreeNode(false, moveTreeMoves, isMoveTreeForcedCheckmate, moveTreeNodes), 0);
                 }
 
                 return failedMoveTreeGenerationNode;
@@ -383,7 +458,7 @@ class Board
 
             int minMovesToForceMate = 0;
 
-            for (Move move : allMoves)
+            for (Move move : moves)
             {
                 this.executeMove(move);
 
@@ -391,8 +466,6 @@ class Board
                     null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
-                boolean skipMoveString = moveTreeGenerationNode.moveTreeNode() == null ||
-                                         moveTreeGenerationNode.moveTreeNode().escaped();
 
                 this.reverseMove(move);
 
@@ -404,12 +477,12 @@ class Board
                 minMovesToForceMate = Math.max(minMovesToForceMate, minMovesToForceMateNextDepth);
 
                 moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                moveStrings.add(skipMoveString ? "" : this.getAlgebraicNotation(move));
+                moveTreeMoves.add(move);
                 isMoveTreeForcedCheckmate.add(doesMoveForceMate);
             }
 
             return new MoveTreeGenerationNode(
-                new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes), minMovesToForceMate);
+                new MoveTreeNode(false, moveTreeMoves, isMoveTreeForcedCheckmate, moveTreeNodes), minMovesToForceMate);
         }
         else // your turn
         {
@@ -435,15 +508,13 @@ class Board
                     null, skipWrongMoves, skipSuboptimalMovesDepth);
                 int     minMovesToForceMateNextDepth = moveTreeGenerationNode.minMovesToForceMate;
                 boolean doesMoveForceMate            = moveTreeGenerationNode.minMovesToForceMate != Integer.MAX_VALUE;
-                boolean skipMoveString = moveTreeGenerationNode.moveTreeNode() == null ||
-                                         moveTreeGenerationNode.moveTreeNode().escaped();
 
                 this.reverseMove(move);
 
                 if (!skipWrongMoves || (doesMoveForceMate && !onlyOptimalMove))
                 {
                     moveTreeNodes.add(moveTreeGenerationNode.moveTreeNode);
-                    moveStrings.add(skipMoveString ? "" : this.getAlgebraicNotation(move));
+                    moveTreeMoves.add(move);
                     isMoveTreeForcedCheckmate.add(doesMoveForceMate);
                 }
 
@@ -458,7 +529,7 @@ class Board
             if (onlyOptimalMove && Integer.MAX_VALUE != minMovesToForceMate)
             {
                 moveTreeNodes.add(optimalMoveTreeNode);
-                moveStrings.add(this.getAlgebraicNotation(optimalMove));
+                moveTreeMoves.add(optimalMove);
                 isMoveTreeForcedCheckmate.add(true);
             }
 
@@ -468,7 +539,7 @@ class Board
             }
 
             return new MoveTreeGenerationNode(
-                new MoveTreeNode(false, moveStrings, isMoveTreeForcedCheckmate, moveTreeNodes),
+                new MoveTreeNode(false, moveTreeMoves, isMoveTreeForcedCheckmate, moveTreeNodes),
                 minMovesToForceMate + 1);
         }
     }
