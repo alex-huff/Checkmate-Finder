@@ -1,10 +1,10 @@
 # CheckmateFinder
 ## About
-CheckmateFinder is a Java application that can find forced checkmates given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles.
+CheckmateFinder is a Java application that can find forced checkmates ("mate in n") given an initial board state. A "forced" checkmate means that one side, given optimal play, can force the opponent into a checkmate. This often occurs towards the end of a chess match, and can be surpisingly difficult to find. My original motivation to make CheckmateFinder came from chess puzzles.
 
-By default, CheckmateFinder will try to provide the first move in a forced checkmate sequence. Since the checkmate sequence depends on what moves the opponent plays, CheckmateFinder will only provide the first move if it can prove there exists a forced checkmate ("mate in n"). CheckmateFinder can also generate a JSON representation of the move tree which can be supplied to the included chess-grapher.py script in order to generate a graphic representation of the tree.
+By default, CheckmateFinder will try to provide the first move in a forced checkmate sequence, and the maximum moves till checkmate if played correctly. CheckmateFinder can also generate a JSON representation of the move tree which can be supplied to the included chess-grapher.py script in order to generate a graphic representation of the tree.
 
-CheckmateFinder can be controlled from the command line by providing the [FEN (Forsyth–Edwards Notation)](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) of the game with the --fen argument. Along with the FEN, a depth must be provided (with --depth) that tells CheckmateFinder how many moves ahead to search. Another parameter, the "check depth," must also be provided (with --check-depth), that tells CheckmateFinder how many turns it should consider non-check moves (higher values drastically increases the search time). The higher the depths, the more likely it is that CheckmateFinder will find a forced mate. With higher depths also comes increased search time, and with unreasonably high depths, the program will not terminate in your lifetime. CheckmateFinder is not an optimized program, but an absolute brute-force approach to calculating moves that is only useful when a game is near completion.
+CheckmateFinder can be controlled from the command line by providing the [FEN (Forsyth–Edwards Notation)](https://en.wikipedia.org/wiki/Forsyth%E2%80%93Edwards_Notation) of the game with the --fen argument. Along with the FEN, a depth must be provided (with --depth) that tells CheckmateFinder how many moves ahead to search. Another parameter, the "check depth," must also be provided (with --check-depth), that tells CheckmateFinder how many turns it should consider non-check moves (higher values drastically increases the search time). The higher the depths, the more likely it is that CheckmateFinder will find a forced mate. With higher depths also comes increased search time. CheckmateFinder is not an optimized program, but an absolute brute-force approach to calculating moves that is only useful when a game is near completion.
 
 A proper chess engine will use advanced heuristics along with hard-coded solutions to certain patterns to ensure that it can make a good move in a reasonable amount of time. CheckmateFinder is not a chess engine, it is not even guaranteed to provide you with a move. CheckmateFinder is primarily a proof of concept, and was made out of my frustration with a puzzle that could be solved much easier by a computer (or somebody reasonably good at chess).
 
@@ -56,7 +56,7 @@ Let's start with a trivial example:
   </tr>
 </table>
 
-We can use CheckmateFinder to generate a tree that tells us how to checkmate from this initial state. We do this by running checkmate-finder.jar to generate a JSON representation of the move tree, which we then pipe into the python graphing program.
+We can use CheckmateFinder to generate a tree that tells us how to checkmate from this initial state. We do this by running `checkmate-finder` to generate a JSON representation of the move tree, which we then pipe into the python graphing program.
 
 Here is the command that generates the graph below:
 
@@ -68,7 +68,7 @@ java -jar checkmate-finder.jar --fen 'rn1r2k1/1pq2p1p/p2p1bpB/3P4/P3Q3/2PB4/5PPP
 
 ![m2](https://user-images.githubusercontent.com/38389408/229237680-1010b1a4-09be-4fe5-9f93-f432aeef733f.png)
 
-In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green checkmarks surround states where the opponent is in checkmate. We can see that the entire `Qe8+ -> Rxe8 -> Rxe8#` sequence that we just played is highlighted red and fits within the maximum depth. But, `Qxg6+` will not work as a first move since both `fxg6` and `hxg6` lead black to escape checkmate (for this search depth).
+In this diagram, the red-outlined paths represent moves that lead to a forced checkmate. The purple paths at the end represent the algorithm giving up because maximum depth was exceeded. The green `#`s surround states where the opponent is in checkmate. We can see that the entire `Qe8+ -> Rxe8 -> Rxe8#` sequence that we just played is highlighted red and fits within the maximum depth. But, `Qxg6+` will not work as a first move since both `fxg6` and `hxg6` lead black to escape checkmate (for this search depth).
 
 Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 ever: L. Knotec, “Cekoslovensky Sach”, 1947](https://thechessworld.com/articles/problems/3-hardest-mate-in-4-ever/):
 
@@ -131,7 +131,7 @@ Here is a more complicated match from thechessworld.com's [3 Hardest Mate-in-4 e
   </tr>
 </table>
 
-This is an example of how this game might be played, but what if black plays different moves? We can use CheckmateFinder to solve this mate in 4 by running the following command:
+This was an example of how this game might be played, but what if black plays different moves? We can use CheckmateFinder to solve this mate in 4 by running the following command:
 
 ```shell
 java -jar checkmate-finder.jar --fen '8/4p3/1B6/2N5/2k5/1R4K1/8/7B w - -' \
@@ -145,4 +145,4 @@ chess-grapher.py --font <path to TTF or OTF Font> --width 1600 --height 1200 \
 Note: this tree is omitting all paths that don't directly lead to a forced mate (--skip-wrong-moves). It would be absolutely massive if all paths were included.
 
 ## Verifying compliance with chess rules (en passant, promotion, castling)
-To verify that CheckmateFinder had no bugs regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed.
+To hunt down bugs in CheckmateFinder regarding compliance with the rules of chess, [Perft](https://www.chessprogramming.org/Perft) was used to verify, from an initial game state, that the calculated number of possible moves for a limited depth matched that of a known-good engine. This was tested for 6 initial game states, and led to the discovery of a few bugs that would have likely gone unnoticed.
