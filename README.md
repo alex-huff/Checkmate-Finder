@@ -18,7 +18,7 @@ In this tree, blue dots represent game states. The leftmost dot is the initial g
 (Initial state is at depth 0)
 - A leaf who is at an odd depth (opponent's turn), is a forced checkmate tree if the opponent is in check. (opponent has no possible moves and is in check: checkmate.)
 - A subtree whose root is at an odd depth (opponent's turn), and whose branches exclusively lead to forced checkmate trees, is also a forced checkmate tree. (any of the opponent's moves still result in a forced checkmate)
-- A subtree whose root is at an even depth (your's turn), and whose branches lead to at least one forced checkmate tree, is also a forced checkmate tree. (there exists a move for you that forces checkmate on your opponent given optimal play)
+- A subtree whose root is at an even depth (your turn), and whose branches lead to at least one forced checkmate tree, is also a forced checkmate tree. (there exists a move for you that forces checkmate on your opponent given optimal play)
 
 This example tree does have this recursive property, and so it represents a forced checkmate. In fact, for this example, any of white's initial moves can lead to a forced checkmate.
 
